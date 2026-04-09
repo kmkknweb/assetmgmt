@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>ระบบการซ่อมแซมบำรุงรักษา</title>
+<link rel="icon" href="LoGoGolden.png" type="image/png">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+:root{
+  --bg:#F5F0E8;--bg3:#EDE8DC;--card:#FFFDF8;--border:#D4C9A8;
+  --text:#2C2416;--text2:#6B5B3E;--text3:#A89070;--gold:#B8860B;
+  --gold-light:#FFF8E1;--green:#2D6A4F;--green-light:#D8F3DC;
+  --warn:#B5550A;--warn-light:#FEE8D6;--danger:#C0392B;--danger-light:#FDECEA;
+  --blue:#1A5276;--blue-light:#D6EAF8;--radius:14px;--radius-sm:9px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.screen{display:none;min-height:100vh;flex-direction:column}
+.screen.active{display:flex}
+#screen-setup{align-items:center;justify-content:center;padding:24px}
+.setup-card{background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);padding:36px 32px;width:100%;max-width:480px}
+.setup-logo{text-align:center;margin-bottom:24px}
+.setup-logo img{width:84px;height:84px;object-fit:contain;margin-bottom:12px;mix-blend-mode:multiply}
+.setup-logo h1{font-size:20px;font-weight:700;color:var(--gold)}
+.setup-logo p{font-size:12px;color:var(--text3);margin-top:4px}
+.form-group{margin-bottom:16px}
+.form-group label,.section-label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:8px;letter-spacing:.5px;text-transform:uppercase}
+.field-input,.search-row input,.textarea{width:100%;background:var(--bg3);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;font-size:14px;color:var(--text);outline:none;font-family:'Sarabun',sans-serif}
+.search-row input{font-family:'IBM Plex Mono',monospace;background:var(--card)}
+.field-input:focus,.search-row input:focus,.textarea:focus{border-color:var(--gold)}
+.textarea{min-height:90px;resize:vertical}
+.btn{border:none;border-radius:var(--radius-sm);padding:13px 14px;font-size:14px;font-weight:700;font-family:'Sarabun',sans-serif;cursor:pointer}
+.btn-primary,.btn{background:var(--gold);color:#fff}
+.btn-primary{width:100%;padding:15px}
+.btn-secondary{background:var(--bg3);color:var(--text2);border:1.5px solid var(--border)}
+.btn-green{background:var(--green-light);color:var(--green);border:1.5px solid #95D5B2}
+.btn-blue{background:var(--blue-light);color:var(--blue);border:1.5px solid #85C1E9}
+.header{background:var(--card);border-bottom:1.5px solid var(--border);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.header-left{display:flex;align-items:center;gap:10px}
+.header-logo{width:42px;height:42px;object-fit:contain;mix-blend-mode:multiply}
+.header-title{font-size:15px;font-weight:700;color:var(--gold)}
+.header-sub{font-size:11px;color:var(--text3);margin-top:1px}
+.btn-settings{background:var(--bg3);border:1.5px solid var(--border);border-radius:9px;padding:7px 13px;font-size:12px;color:var(--text2);cursor:pointer;font-family:'Sarabun',sans-serif}
+.page{padding:18px;flex:1;overflow-y:auto}
+.status-bar{background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);padding:14px 18px;display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.status-dot{width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.status-bar span{font-size:13px;color:var(--text2)}
+.server-url{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--gold);margin-left:auto}
+.kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px}
+.kpi{background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:12px}
+.kpi .n{font-size:22px;font-weight:700;color:var(--gold)}
+.kpi .t{font-size:11px;color:var(--text2)}
+.top-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.search-row{display:flex;gap:8px;margin-bottom:10px;position:relative}
+.btn-qr{background:var(--bg3);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:13px 15px;font-size:17px;cursor:pointer;color:var(--text2)}
+.search-dropdown{position:absolute;top:100%;left:0;right:52px;background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-sm);z-index:99;max-height:240px;overflow-y:auto;display:none;margin-top:4px}
+.search-dropdown.show{display:block}
+.search-dd-item{padding:12px 14px;cursor:pointer;border-bottom:0.5px solid var(--border)}
+.search-dd-item:active{background:var(--bg3)}
+.search-dd-name{font-size:14px;font-weight:600}
+.search-dd-tag{font-size:11px;color:var(--text2);font-family:'IBM Plex Mono',monospace;margin-top:2px}
+.filters{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.card{background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px}
+.card-title{font-size:15px;font-weight:700}
+.card-sub{font-size:12px;color:var(--text2);margin-top:2px}
+.meta{font-size:12px;color:var(--text2);line-height:1.6;margin-top:8px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;background:var(--warn-light);color:var(--warn)}
+.btn-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px}
+.overlay{position:fixed;inset:0;background:rgba(44,36,22,.6);z-index:200;display:none;align-items:flex-end;justify-content:center}
+.overlay.show{display:flex}
+.dialog{background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius) var(--radius) 0 0;padding:22px 18px 32px;width:100%;max-width:620px;max-height:92vh;overflow-y:auto}
+.dialog h3{font-size:18px;font-weight:700;margin-bottom:8px}
+.dialog p{font-size:13px;color:var(--text2);margin-bottom:12px;line-height:1.55}
+.dialog-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.modal-grid{display:grid;gap:10px}
+.qr-section{margin-bottom:14px;display:none}
+.qr-section.show{display:block}
+.qr-wrapper{background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:8px}
+.btn-stop-qr{width:100%;background:var(--danger);border:none;border-radius:var(--radius-sm);padding:12px;font-size:14px;font-weight:700;color:white;cursor:pointer}
+.ticket{background:#fff;color:#000;padding:18px;border-radius:12px;border:1px solid #ddd;display:none}
+.ticket.show{display:block}
+.ticket .head{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.ticket .head img{width:56px;height:56px;object-fit:contain;mix-blend-mode:multiply}
+.ticket .org{font-size:18px;font-weight:700;color:#8B6914}
+.ticket .sub{font-size:12px;color:#666}
+.ticket .line{height:1px;background:#ddd;margin:10px 0}
+.ticket .item{font-size:14px;line-height:1.7}
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);padding:13px 22px;font-size:14px;font-weight:600;z-index:999;transition:transform .3s ease;white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.success{border-color:#95D5B2;color:var(--green);background:var(--green-light)}
+.toast.error{border-color:#F4A261;color:var(--danger);background:var(--danger-light)}
+.loading-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:500;display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px}
+.loading-overlay.show{display:flex}
+.loading-overlay .spin{width:36px;height:36px;border:3px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin .7s linear infinite}
+.loading-overlay .loading-txt{color:white;font-size:14px;font-weight:600}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.batch-panel{background:var(--bg3);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:12px}
+.batch-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.batch-head-title{font-size:13px;font-weight:700;color:var(--text)}
+.batch-count{font-size:11px;color:var(--text2)}
+.batch-list{display:grid;gap:8px;margin-top:8px}
+.batch-item{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 11px;display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.batch-item-name{font-size:13px;font-weight:700;color:var(--text)}
+.batch-item-sub{font-size:11px;color:var(--text2);margin-top:3px;line-height:1.5}
+.batch-empty{font-size:12px;color:var(--text3);padding:6px 2px}
+.btn-mini-danger{background:var(--danger-light);color:var(--danger);border:1px solid #F4A261;border-radius:8px;padding:7px 10px;font-size:12px;font-weight:700;font-family:'Sarabun',sans-serif;cursor:pointer}
+.btn-mini-add{background:var(--blue-light);color:var(--blue);border:1px solid #85C1E9;border-radius:8px;padding:10px 12px;font-size:12px;font-weight:700;font-family:'Sarabun',sans-serif;cursor:pointer;width:100%}
+.small-help{font-size:11px;color:var(--text3);line-height:1.5;margin-top:6px}
+
+.empty{padding:36px 18px;text-align:center;color:var(--text2)}
+</style>
+</head>
+<body>
+
+<div id="screen-setup" class="screen active">
+  <div class="setup-card">
+    <div class="setup-logo">
+      <img src="LoGoGolden.png" alt="โลโก้">
+      <h1>สมาคมปึงเถ่ากงม่าขอนแก่น</h1>
+      <p>ระบบการซ่อมแซมบำรุงรักษา</p>
+    </div>
+    <div class="form-group">
+      <label>URL Server</label>
+      <input class="field-input" type="text" id="input-url" placeholder="proxy">
+    </div>
+    <div class="form-group">
+      <label>API Token</label>
+      <input class="field-input" type="password" id="input-token" placeholder="proxy">
+    </div>
+    <button class="btn-primary" onclick="saveSettings()">เริ่มใช้งาน →</button>
+  </div>
+</div>
+
+<div id="screen-home" class="screen">
+  <div class="header">
+    <div class="header-left">
+      <img class="header-logo" src="LoGoGolden.png" alt="">
+      <div><div class="header-title">ระบบการซ่อมแซมบำรุงรักษา</div><div class="header-sub" id="header-sub">กำลังเชื่อมต่อ...</div></div>
+    </div>
+    <button class="btn-settings" onclick="showSetup()">⚙ ตั้งค่า</button>
+  </div>
+
+  <div class="page">
+    <div class="status-bar">
+      <div class="status-dot" id="status-dot"></div>
+      <span id="status-text">กำลังเชื่อมต่อ...</span>
+      <span class="server-url" id="status-url"></span>
+    </div>
+
+    <div class="kpis">
+      <div class="kpi"><div class="n" id="kpi-open">0</div><div class="t">กำลังซ่อม</div></div>
+          </div>
+
+    <div class="top-actions">
+      <button class="btn" onclick="openCreateModal()">+ เพิ่มงานซ่อม</button>
+      <button class="btn btn-secondary" onclick="loadAll()">↻ รีเฟรช</button>
+      <button class="btn btn-blue" onclick="renderMaintenances()">ดูงานเปิดทั้งหมด</button>
+      <button class="btn btn-secondary" onclick="document.getElementById('main-search').value='';renderMaintenances()">ล้างค้นหา</button>
+    </div>
+
+    <div class="search-row">
+      <input id="main-search" placeholder="ค้นหาจากชื่อทรัพย์สิน, รหัส, หัวข้องานซ่อม..." oninput="renderMaintenances()">
+    </div>
+
+    <div id="maint-list"></div>
+  </div>
+</div>
+
+<div class="overlay" id="create-overlay">
+  <div class="dialog">
+    <h3>เพิ่มงานซ่อม / ส่งซ่อม</h3>
+    <p>สร้างงานซ่อมจริงใน Snipe-IT และเปลี่ยนสถานะทรัพย์สินเป็น รอตรวจสอบ/ส่งซ่อม</p>
+    <div class="modal-grid">
+      <div class="filters">
+        <div>
+          <label class="section-label">Category</label>
+          <select class="field-input" id="create-cat" onchange="onCreateCategoryChange()"><option value="">-- เลือกหมวดหมู่ --</option></select>
+        </div>
+        <div>
+          <label class="section-label">Model</label>
+          <select class="field-input" id="create-model" onchange="onCreateModelChange()"><option value="">-- เลือกโมเดล --</option></select>
+        </div>
+      </div>
+
+      <div class="search-row">
+        <input id="create-asset-search" placeholder="ค้นหา asset หรือสแกน QR..." oninput="liveSearchCreateAsset()">
+        <button class="btn-qr" onclick="toggleCreateQR()">📷</button>
+        <div class="search-dropdown" id="create-asset-dd"></div>
+      </div>
+
+      <div class="qr-section" id="create-qr-section">
+        <div class="qr-wrapper"><div id="create-qr-reader"></div></div>
+        <button class="btn-stop-qr" onclick="stopCreateQR()">✕ หยุดสแกน</button>
+      </div>
+
+      <div>
+        <label class="section-label">Asset</label>
+        <select class="field-input" id="create-asset" onchange="onCreateAssetSelect()"><option value="">-- เลือก Asset --</option></select>
+      </div>
+
+      <div class="card" id="selected-asset-box" style="display:none;padding:12px">
+        <div class="card-title" id="selected-asset-name">-</div>
+        <div class="card-sub" id="selected-asset-sub">-</div>
+        <div class="meta" id="selected-asset-meta">-</div>
+        <button class="btn-mini-add" style="margin-top:10px" onclick="addSelectedAssetToBatch()">➕ เพิ่มเข้ารายการส่งซ่อม</button>
+      </div>
+
+      <div class="batch-panel">
+        <div class="batch-head">
+          <div class="batch-head-title">รายการส่งซ่อมชุดเดียวกัน</div>
+          <div class="batch-count" id="batch-count">0 รายการ</div>
+        </div>
+        <div id="batch-list" class="batch-list">
+          <div class="batch-empty">ยังไม่มีรายการในชุดส่งซ่อม</div>
+        </div>
+        <div class="small-help">ถ้าส่งซ่อมพร้อมกันหลายชิ้น ระบบจะสร้าง maintenance แยกทีละชิ้นใน Snipe-IT แต่ผูกด้วยเลขชุดเดียวกัน และบันทึกหมายเหตุว่ามีกี่ชิ้น ตัวไหนบ้าง และราคารวมเท่าไร</div>
+      </div>
+
+      <div class="filters">
+        <div>
+          <label class="section-label">ประเภทงาน</label>
+          <select class="field-input" id="maint-type">
+            <option value="Repair">Repair</option>
+            <option value="Maintenance">Maintenance</option>
+            <option value="PAT Test">PAT Test</option>
+            <option value="Upgrade">Upgrade</option>
+            <option value="Hardware Support">Hardware Support</option>
+            <option value="Software Support">Software Support</option>
+          </select>
+        </div>
+        <div>
+          <label class="section-label">วันที่เริ่ม</label>
+          <input class="field-input" id="maint-start-date" type="date">
+        </div>
+      </div>
+
+      <div>
+        <label class="section-label">ชื่อ/หัวข้องานซ่อม</label>
+        <input class="field-input" id="maint-name" placeholder="เช่น ซ่อมลำโพงไมค์, เปลี่ยนวาล์วน้ำ">
+      </div>
+
+      <div class="filters">
+        <div>
+          <label class="section-label">Supplier</label>
+          <select class="field-input" id="maint-supplier"><option value="">-- เลือก supplier --</option></select>
+        </div>
+        <div>
+          <label class="section-label">เพิ่ม Supplier ใหม่</label>
+          <div class="row" style="align-items:stretch">
+            <input class="field-input" id="new-supplier-name" placeholder="ชื่อ supplier ใหม่" style="margin-bottom:0">
+            <button class="btn btn-secondary" style="white-space:nowrap" onclick="createSupplier()">+ เพิ่ม</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="filters">
+        <div>
+          <label class="section-label">ค่าใช้จ่าย</label>
+          <input class="field-input" id="maint-cost" type="number" step="0.01" min="0" placeholder="0.00">
+        </div>
+        <div>
+          <label class="section-label">ประกัน</label>
+          <label class="section-label" style="display:flex;align-items:center;gap:8px;height:42px;margin-bottom:0;text-transform:none;font-size:13px;color:var(--text2);letter-spacing:0">
+            <input type="checkbox" id="maint-warranty"> อยู่ในประกัน
+          </label>
+        </div>
+      </div>
+
+      <div>
+        <label class="section-label">หมายเหตุ</label>
+        <textarea class="textarea" id="maint-notes" placeholder="รายละเอียดเพิ่มเติม..."></textarea>
+      </div>
+    </div>
+
+    <div class="dialog-actions">
+      <button class="btn btn-secondary" onclick="closeCreateModal()">ยกเลิก</button>
+      <button class="btn" onclick="createMaintenanceOneClick()">บันทึกและส่งซ่อมทั้งหมด</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="return-overlay">
+  <div class="dialog">
+    <h3>รับกลับจากซ่อม</h3>
+    <p>ปิดงานซ่อม เปลี่ยนสถานะกลับเป็นฝั่งพร้อมใช้งาน และเลือกตำแหน่งวาง</p>
+    <div class="modal-grid">
+      <div class="card" style="padding:12px">
+        <div class="card-title" id="return-asset-name">-</div>
+        <div class="card-sub" id="return-maint-title">-</div>
+      </div>
+      <div class="filters">
+        <div>
+          <label class="section-label">วันที่ซ่อมเสร็จ</label>
+          <input class="field-input" id="return-date" type="date">
+        </div>
+        <div>
+          <label class="section-label">ตำแหน่งที่จะวาง</label>
+          <select class="field-input" id="return-location"><option value="">-- เลือกตำแหน่ง --</option></select>
+        </div>
+      </div>
+      <div>
+        <label class="section-label">ค่าใช้จ่ายจริง (บาท)</label>
+        <input class="field-input" id="return-cost" type="number" min="0" step="0.01" placeholder="ไม่กรอกหากไม่มีค่าใช้จ่าย">
+      </div>
+      <div>
+        <label class="section-label">หมายเหตุปิดงาน</label>
+        <textarea class="textarea" id="return-notes" placeholder="เช่น ซ่อมเสร็จ เปลี่ยนอะไหล่เรียบร้อย"></textarea>
+      </div>
+    </div>
+    <div class="dialog-actions">
+      <button class="btn btn-secondary" onclick="closeReturnModal()">ยกเลิก</button>
+      <button class="btn btn-green" onclick="completeMaintenanceOneClick()">รับกลับและปิดงาน</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="ticket-overlay">
+  <div class="dialog">
+    <h3>ใบงานซ่อม</h3>
+    <p>บันทึกเป็นภาพหรือพิมพ์/บันทึก PDF จากมือถือได้</p>
+    <div id="ticket-card" class="ticket"></div>
+    <div class="dialog-actions" style="grid-template-columns:1fr 1fr;">
+      <button class="btn btn-secondary" onclick="closeTicketModal()">ปิด</button>
+      <button class="btn btn-blue" onclick="downloadTicketPng()">บันทึกเป็นภาพ</button>
+      <button class="btn" onclick="printTicket()">พิมพ์ / Save PDF</button>
+      <button class="btn btn-green" onclick="sendTicketLine()">ส่ง LINE</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="loading-overlay" id="loading-overlay"><div class="spin"></div><div class="loading-txt">กำลังดำเนินการ...</div></div>
+
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script>
+let CONFIG={url:'',token:''};
+const PROXY_URL='https://script.google.com/macros/s/AKfycbxkoPkmNhRh7Zk7jGYaTgMT9pA3KzdxWJ-mh8l_0Hh8purwBwEjDiBP7mH5KBG52lqKbA/exec';
+let MAINTS=[], SUPPLIERS=[], LOCATIONS=[], STATUSLABELS=[], MODELS=[], HARDWARE=[];
+let CREATE_STATE={filteredAssets:[]};
+let SELECTED_ASSET=null, RETURN_CTX=null, TICKET_CTX=null;
+let BATCH_ASSETS=[];
+let qrScannerCreate=null;
+
+function escHtml(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+function todayStr(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function fmtDate(v){if(!v) return '-'; if(typeof v==='string') return v; if(typeof v==='object'){if(v.formatted) return v.formatted; if(v.date) return v.date; if(v.datetime) return v.datetime;} return String(v);}
+function saveSettings(){const url=(document.getElementById('input-url').value.trim().replace(/\/$/,'')||'proxy'); const token=(document.getElementById('input-token').value.trim()||'proxy'); CONFIG={url,token}; localStorage.setItem('snipeit_cfg',JSON.stringify(CONFIG)); showScreen('home'); checkConnection(); loadAll();}
+function showSetup(){document.getElementById('input-url').value=CONFIG.url; document.getElementById('input-token').value=CONFIG.token; stopCreateQR(); showScreen('setup');}
+function showScreen(n){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById('screen-'+n).classList.add('active');}
+
+async function proxyCall(method,p,b){
+  if(!p) throw new Error('missing endpoint');
+  const qs=new URLSearchParams({endpoint:p,method:method});
+  if(b!==null && b!==undefined) qs.set('body', JSON.stringify(b));
+  const r=await fetch(`${PROXY_URL}?${qs.toString()}`,{method:'GET',headers:{'Accept':'application/json'}});
+  const t=await r.text();
+  let data={}; try{data=t?JSON.parse(t):{};}catch(_){data={raw:t};}
+  if(!r.ok) throw new Error('HTTP '+r.status);
+  return data;
+}
+async function apiGet(p){return proxyCall('GET',p,null);}
+async function apiPost(p,b){return proxyCall('POST',p,b);}
+async function apiPatch(p,b){return proxyCall('PATCH',p,b);}
+
+function getResponseError(res){
+  if(!res) return 'ไม่พบข้อมูลตอบกลับจากระบบ';
+  if(res.error===true) return res.message || 'Proxy error';
+  if(typeof res.status==='string' && res.status.toLowerCase()==='error'){
+    if(typeof res.messages==='string') return res.messages;
+    if(Array.isArray(res.messages)) return res.messages.join(', ');
+    if(res.messages && typeof res.messages==='object'){
+      return Object.entries(res.messages).map(([k,v])=>k+': '+(Array.isArray(v)?v.join(', '):String(v))).join(' | ');
+    }
+    return res.message || 'Snipe-IT error';
+  }
+  return '';
+}
+function checkConnection(){
+  document.getElementById('status-url').textContent=CONFIG.url;
+  apiGet('hardware?limit=1').then(()=>{
+    document.getElementById('status-dot').style.background='#2D6A4F';
+    document.getElementById('status-text').textContent='เชื่อมต่อสำเร็จ ✓';
+    document.getElementById('header-sub').textContent='ออนไลน์';
+  }).catch(()=>{
+    document.getElementById('status-dot').style.background='#C0392B';
+    document.getElementById('status-text').textContent='เชื่อมต่อไม่ได้';
+    document.getElementById('header-sub').textContent='ออฟไลน์';
+  });
+}
+function showLoading(show){document.getElementById('loading-overlay').classList.toggle('show',!!show);}
+function showToast(msg,type='success'){const t=document.getElementById('toast');t.textContent=msg;t.className='toast '+type;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3500);}
+function maintenanceStatusIdByName(name){
+  const wanted=String(name||'').trim().toLowerCase();
+  let row=STATUSLABELS.find(x=>String(x.name||'').trim().toLowerCase()===wanted);
+  if(row) return row.id;
+  row=STATUSLABELS.find(x=>String(x.status_type||x.type||x.status_meta||'').trim().toLowerCase()===wanted);
+  return row?row.id:null;
+}
+function getPendingStatusId(){
+  const thai=STATUSLABELS.find(x=>String(x.name||'').trim()==='รอตรวจสอบ/ส่งซ่อม');
+  if(thai) return thai.id;
+  const byType=STATUSLABELS.find(x=>{
+    const t=String(x.status_type||x.type||x.status_meta||'').trim().toLowerCase();
+    return t==='pending';
+  });
+  return byType?byType.id:null;
+}
+function getDeployableStatusId(){
+  const preferredNames=['สถานะปกติ (deployable)','ready to deploy','deployed'];
+  for(const n of preferredNames){
+    const found=STATUSLABELS.find(x=>String(x.name||'').trim().toLowerCase()===n);
+    if(found) return found.id;
+  }
+  const byType=STATUSLABELS.find(x=>{
+    const t=String(x.status_type||x.type||x.status_meta||'').trim().toLowerCase();
+    return t==='deployable' || t==='deployed' || t==='ready';
+  });
+  return byType?byType.id:null;
+}
+function getMaintAssetId(m){
+  if(!m) return '';
+  if(m.asset_id!==undefined && m.asset_id!==null && String(m.asset_id)!=='') return String(m.asset_id);
+  if(m.asset && m.asset.id!==undefined && m.asset.id!==null && String(m.asset.id)!=='') return String(m.asset.id);
+  return '';
+}
+
+async function loadAll(){
+  showLoading(true);
+  try{
+    const [st,loc,sup,maint,models,hardware]=await Promise.all([
+      apiGet('statuslabels?limit=500'),
+      apiGet('locations?limit=500'),
+      apiGet('suppliers?limit=500'),
+      apiGet('maintenances?limit=500&_ts='+Date.now()),
+      apiGet('models?limit=500'),
+      apiGet('hardware?limit=500')
+    ]);
+    STATUSLABELS=st.rows||[];
+    LOCATIONS=loc.rows||[];
+    SUPPLIERS=sup.rows||[];
+    MODELS=models.rows||[];
+    HARDWARE=hardware.rows||[];
+    const allMaints=maint.rows||[];
+    MAINTS=allMaints.filter(m=>{
+      const cd=m.completion_date;
+      if(cd===null || typeof cd==='undefined') return true;
+      if(typeof cd==='string'){
+        const s=cd.trim().toLowerCase();
+        return s==='' || s==='null' || s==='undefined';
+      }
+      if(typeof cd==='object'){
+        return !(cd.date || cd.formatted || cd.datetime || cd.value);
+      }
+      return !cd;
+    });
+    fillSupplierSelect();
+    fillCreateCategories();
+    updateKpis();
+    renderMaintenances();
+    document.getElementById('header-sub').textContent='ออนไลน์';
+  }catch(e){
+    MAINTS=[];
+    renderMaintenances();
+    document.getElementById('header-sub').textContent='เชื่อมต่อไม่ได้';
+    showToast('โหลดข้อมูลไม่สำเร็จ: '+e.message,'error');
+  }finally{
+    showLoading(false);
+  }
+}
+function updateKpis(){
+  const open=MAINTS.length;
+  document.getElementById('kpi-open').textContent=open;
+}
+function fillSupplierSelect(){
+  document.getElementById('maint-supplier').innerHTML='<option value="">-- เลือก supplier --</option>'+SUPPLIERS.map(s=>`<option value="${s.id}">${escHtml(s.name||('- #'+s.id))}</option>`).join('');
+}
+function fillCreateCategories(){
+  const catMap=new Map();
+  MODELS.forEach(m=>{const id=(m.category&&m.category.id)!=null?String(m.category.id):'uncat'; const nm=(m.category&&m.category.name)?m.category.name:'(ไม่มีหมวดหมู่)'; if(!catMap.has(id)) catMap.set(id,nm);});
+  const cats=Array.from(catMap.entries()).sort((a,b)=>String(a[1]).localeCompare(String(b[1]),'th'));
+  document.getElementById('create-cat').innerHTML='<option value="">-- เลือกหมวดหมู่ --</option>'+cats.map(c=>`<option value="${c[0]}">${escHtml(c[1])}</option>`).join('');
+  document.getElementById('create-model').innerHTML='<option value="">-- เลือกโมเดล --</option>';
+  document.getElementById('create-asset').innerHTML='<option value="">-- เลือก Asset --</option>';
+}
+function onCreateCategoryChange(){
+  const catId=document.getElementById('create-cat').value;
+  const models=MODELS.filter(m=>((m.category&&m.category.id)!=null?String(m.category.id):'uncat')===catId).sort((a,b)=>String(a.name||'').localeCompare(String(b.name||''),'th'));
+  document.getElementById('create-model').innerHTML='<option value="">-- เลือกโมเดล --</option>'+models.map(m=>`<option value="${m.id}">${escHtml(m.name||'-')}</option>`).join('');
+  document.getElementById('create-asset').innerHTML='<option value="">-- เลือก Asset --</option>';
+  SELECTED_ASSET=null; renderSelectedAsset(); resetBatchAssets();
+}
+function onCreateModelChange(){
+  const modelId=document.getElementById('create-model').value;
+  const assets=HARDWARE.filter(h=>modelId && h.model && String(h.model.id)===String(modelId)).sort((a,b)=>String(a.name||'').localeCompare(String(b.name||''),'th'));
+  CREATE_STATE.filteredAssets=assets;
+  document.getElementById('create-asset').innerHTML='<option value="">-- เลือก Asset --</option>'+assets.map((h,idx)=>`<option value="${idx}">${escHtml((h.name||'-')+' #'+(h.asset_tag||'-'))}</option>`).join('');
+  SELECTED_ASSET=null; renderSelectedAsset();
+}
+function onCreateAssetSelect(){const idx=document.getElementById('create-asset').value; SELECTED_ASSET=idx===''?null:CREATE_STATE.filteredAssets[parseInt(idx)]||null; renderSelectedAsset();}
+
+function resetBatchAssets(){
+  BATCH_ASSETS=[];
+  renderBatchAssets();
+}
+
+function renderBatchAssets(){
+  const countEl=document.getElementById('batch-count');
+  const listEl=document.getElementById('batch-list');
+  if(countEl) countEl.textContent=BATCH_ASSETS.length+' รายการ';
+  if(!listEl) return;
+  if(!BATCH_ASSETS.length){
+    listEl.innerHTML='<div class="batch-empty">ยังไม่มีรายการในชุดส่งซ่อม</div>';
+    return;
+  }
+  listEl.innerHTML=BATCH_ASSETS.map((a,idx)=>{
+    const loc=(a.location&&a.location.name)||(a.rtd_location&&a.rtd_location.name)||(a.default_location&&a.default_location.name)||'-';
+    return '<div class="batch-item">'+
+      '<div style="flex:1;min-width:0">'+
+        '<div class="batch-item-name">'+(idx+1)+'. '+escHtml(a.name||'-')+'</div>'+
+        '<div class="batch-item-sub"># '+escHtml(a.asset_tag||'-')+' · '+escHtml(a.model&&a.model.name||'-')+'<br>ตำแหน่ง: '+escHtml(loc)+'</div>'+
+      '</div>'+
+      '<button class="btn-mini-danger" onclick="removeBatchAsset('+idx+')">ลบ</button>'+
+    '</div>';
+  }).join('');
+}
+
+function removeBatchAsset(idx){
+  BATCH_ASSETS.splice(idx,1);
+  renderBatchAssets();
+}
+
+function addSelectedAssetToBatch(){
+  if(!SELECTED_ASSET || !SELECTED_ASSET.id){
+    showToast('กรุณาเลือก Asset ก่อน','error');
+    return;
+  }
+  const existingOpen=findOpenMaintenanceForAsset(SELECTED_ASSET.id);
+  if(existingOpen){
+    const oldName=existingOpen.name||existingOpen.title||'-';
+    showToast('Asset นี้มีงานซ่อมค้างอยู่แล้ว: '+oldName,'error');
+    return;
+  }
+  const exists=BATCH_ASSETS.find(x=>String(x.id)===String(SELECTED_ASSET.id));
+  if(exists){
+    showToast('รายการนี้อยู่ในชุดส่งซ่อมแล้ว','error');
+    return;
+  }
+  BATCH_ASSETS.push(SELECTED_ASSET);
+  renderBatchAssets();
+  showToast('เพิ่มเข้ารายการส่งซ่อมแล้ว','success');
+}
+
+function buildBatchCode(){
+  const d=new Date();
+  const y=String(d.getFullYear()).slice(-2);
+  const m=String(d.getMonth()+1).padStart(2,'0');
+  const day=String(d.getDate()).padStart(2,'0');
+  const hh=String(d.getHours()).padStart(2,'0');
+  const mm=String(d.getMinutes()).padStart(2,'0');
+  const rand=Math.floor(Math.random()*90+10);
+  return 'BATCH-'+y+m+day+'-'+hh+mm+'-'+rand;
+}
+
+function buildBatchNote(batchCode,totalCost,assets){
+  const notes=document.getElementById('maint-notes').value.trim();
+  const names=assets.map((a,idx)=> (idx+1)+'. '+(a.name||'-')+' (#'+(a.asset_tag||'-')+')').join(' | ');
+  const totalText=(totalCost!=='' && totalCost!=null) ? totalCost+' บาท' : 'ไม่ระบุ';
+  const lines=[
+    'เลขชุดส่งซ่อม: '+batchCode,
+    'ส่งซ่อมพร้อมกันทั้งหมด '+assets.length+' ชิ้น',
+    'รายการในชุด: '+names,
+    'ราคารวมทั้งชุด: '+totalText
+  ];
+  if(notes) lines.push('หมายเหตุเพิ่มเติม: '+notes);
+  return lines.join(' | ');
+}
+
+function renderSelectedAsset(){
+  const box=document.getElementById('selected-asset-box');
+  if(!SELECTED_ASSET){box.style.display='none'; return;}
+  box.style.display='block';
+  document.getElementById('selected-asset-name').textContent=SELECTED_ASSET.name||'-';
+  document.getElementById('selected-asset-sub').textContent='# '+(SELECTED_ASSET.asset_tag||'-');
+  const loc=(SELECTED_ASSET.location&&SELECTED_ASSET.location.name)||(SELECTED_ASSET.rtd_location&&SELECTED_ASSET.rtd_location.name)||(SELECTED_ASSET.default_location&&SELECTED_ASSET.default_location.name)||'-';
+  const st=(SELECTED_ASSET.status_label&&SELECTED_ASSET.status_label.name)||'-';
+  document.getElementById('selected-asset-meta').textContent='สถานะ: '+st+' · ตำแหน่ง: '+loc;
+}
+
+let createSearchTimer=null;
+function liveSearchCreateAsset(){clearTimeout(createSearchTimer); const q=document.getElementById('create-asset-search').value.trim(); const dd=document.getElementById('create-asset-dd'); if(q.length<2){dd.classList.remove('show'); return;} createSearchTimer=setTimeout(()=>doSearchCreateAsset(q),300);}
+async function doSearchCreateAsset(q){
+  const dd=document.getElementById('create-asset-dd');
+  dd.innerHTML='<div class="search-dd-item">กำลังค้นหา...</div>'; dd.classList.add('show');
+  try{
+    const data=await apiGet('hardware?search='+encodeURIComponent(q)+'&limit=20');
+    const rows=data.rows||[]; window._createSearchRows=rows;
+    if(!rows.length){dd.innerHTML='<div class="search-dd-item">ไม่พบรายการ</div>'; return;}
+    dd.innerHTML=rows.map((item,idx)=>`<div class="search-dd-item" onclick="selectCreateSearchAsset(${idx})"><div class="search-dd-name">${escHtml(item.name||'-')}</div><div class="search-dd-tag"># ${escHtml(item.asset_tag||'-')} · ${escHtml(item.model&&item.model.name||'-')}</div></div>`).join('');
+  }catch(e){dd.innerHTML='<div class="search-dd-item">ค้นหาไม่สำเร็จ</div>';}
+}
+function selectCreateSearchAsset(idx){
+  const item=(window._createSearchRows||[])[idx]; if(!item) return;
+  SELECTED_ASSET=item; document.getElementById('create-asset-search').value=(item.asset_tag||'')+' '+(item.name||'');
+  document.getElementById('create-asset-dd').classList.remove('show'); renderSelectedAsset();
+}
+function toggleCreateQR(){
+  const section=document.getElementById('create-qr-section');
+  if(section.classList.contains('show')){stopCreateQR(); return;}
+  section.classList.add('show');
+  qrScannerCreate=new Html5Qrcode('create-qr-reader');
+  qrScannerCreate.start({facingMode:'environment'},{fps:10,qrbox:{width:250,height:250}},async(decoded)=>{
+    stopCreateQR(); const tag=decoded.includes('/')?decoded.split('/').pop():decoded;
+    document.getElementById('create-asset-search').value=tag;
+    await doSearchCreateAsset(tag);
+    const item=(window._createSearchRows||[]).find(x=>String(x.asset_tag||'')===String(tag));
+    if(item){SELECTED_ASSET=item; renderSelectedAsset(); document.getElementById('create-asset-dd').classList.remove('show');}
+    showToast('สแกนได้: '+tag,'success');
+  },()=>{}).catch(()=>{showToast('ไม่สามารถเปิดกล้องได้ — ต้องใช้ HTTPS หรือเปิดสิทธิ์กล้องก่อนครับ','error'); stopCreateQR();});
+}
+function stopCreateQR(){document.getElementById('create-qr-section').classList.remove('show'); if(qrScannerCreate){qrScannerCreate.stop().catch(()=>{}); qrScannerCreate=null;}}
+
+function openCreateModal(){
+  stopCreateQR();
+  document.getElementById('create-overlay').classList.add('show');
+  document.getElementById('maint-start-date').value=todayStr();
+  document.getElementById('maint-type').value='Repair';
+  document.getElementById('maint-name').value='';
+  document.getElementById('maint-notes').value='';
+  document.getElementById('maint-cost').value='';
+  document.getElementById('maint-warranty').checked=false;
+  document.getElementById('new-supplier-name').value='';
+  document.getElementById('create-asset-search').value='';
+  document.getElementById('create-asset-dd').classList.remove('show');
+  document.getElementById('create-cat').value='';
+  document.getElementById('create-model').innerHTML='<option value="">-- เลือกโมเดล --</option>';
+  document.getElementById('create-asset').innerHTML='<option value="">-- เลือก Asset --</option>';
+  SELECTED_ASSET=null; renderSelectedAsset(); resetBatchAssets();
+}
+function closeCreateModal(){stopCreateQR(); document.getElementById('create-overlay').classList.remove('show');}
+
+async function createSupplier(){
+  const name=document.getElementById('new-supplier-name').value.trim();
+  if(!name){showToast('กรุณากรอกชื่อ supplier','error'); return;}
+  showLoading(true);
+  try{
+    const resp=await apiPost('suppliers',{name:name});
+    const err=getResponseError(resp); if(err) throw new Error(err);
+    const sup=await apiGet('suppliers?limit=500');
+    SUPPLIERS=sup.rows||[]; fillSupplierSelect();
+    const found=SUPPLIERS.find(s=>String(s.name||'').trim()===name);
+    if(!found) throw new Error('ระบบตอบกลับเหมือนสำเร็จ แต่ไม่พบ supplier ใหม่ในรายการ');
+    document.getElementById('maint-supplier').value=found.id;
+    document.getElementById('new-supplier-name').value='';
+    showToast('✓ เพิ่ม supplier สำเร็จจริง','success');
+  }catch(e){showToast('เพิ่ม supplier ไม่สำเร็จ: '+e.message,'error');}
+  finally{showLoading(false);}
+}
+
+
+function findOpenMaintenanceForAsset(assetId){
+  return MAINTS.find(function(m){
+    return getMaintAssetId(m)===String(assetId) && !m.completion_date;
+  }) || null;
+}
+
+
+async function createMaintenanceOneClick(){
+  if(BATCH_ASSETS.length===0){
+    showToast('กรุณาเพิ่ม Asset เข้ารายการส่งซ่อมก่อน','error');
+    return;
+  }
+
+  const name=document.getElementById('maint-name').value.trim();
+  if(!name){showToast('กรุณากรอกชื่อ/หัวข้องานซ่อม','error'); return;}
+  const supplierId=document.getElementById('maint-supplier').value;
+  if(!supplierId){showToast('กรุณาเลือก supplier ก่อนบันทึกงานซ่อม','error'); return;}
+
+  const totalCost=document.getElementById('maint-cost').value.trim();
+  const batchCode=buildBatchCode();
+  const commonNote=buildBatchNote(batchCode,totalCost,BATCH_ASSETS);
+  const startDate=document.getElementById('maint-start-date').value || todayStr();
+  const maintType=document.getElementById('maint-type').value || 'Repair';
+  const isWarranty=document.getElementById('maint-warranty').checked ? 1 : 0;
+
+  showLoading(true);
+  const failed=[];
+  let successCount=0;
+
+  try{
+    for(const asset of BATCH_ASSETS){
+      try{
+        const existing=findOpenMaintenanceForAsset(asset.id);
+        if(existing){
+          const oldName=existing.name||existing.title||'-';
+          throw new Error('มีงานซ่อมค้างอยู่แล้ว: '+oldName);
+        }
+
+        const body={
+          asset_id: asset.id,
+          name: name,
+          title: name,
+          asset_maintenance_type: maintType,
+          start_date: startDate,
+          supplier_id: parseInt(supplierId,10),
+          notes: commonNote
+        };
+        if(isWarranty) body.is_warranty=1;
+
+        const created=await apiPost('maintenances', body);
+        const createErr=getResponseError(created);
+        if(createErr) throw new Error(createErr);
+
+        const pendingId=getPendingStatusId();
+        if(!pendingId) throw new Error('ไม่พบสถานะ "รอตรวจสอบ/ส่งซ่อม"');
+        const patchResp=await apiPatch('hardware/'+asset.id,{status_id:parseInt(pendingId,10)});
+        const patchErr=getResponseError(patchResp);
+        if(patchErr) throw new Error('สร้างงานแล้ว แต่เปลี่ยนสถานะไม่ได้: '+patchErr);
+
+        successCount++;
+      }catch(err){
+        failed.push((asset.name||'-')+' (#'+(asset.asset_tag||'-')+'): '+err.message);
+      }
+    }
+
+    closeCreateModal();
+    await loadAll();
+
+    if(failed.length){
+      alert('สร้างงานซ่อมสำเร็จ '+successCount+' รายการ
+ไม่สำเร็จ '+failed.length+' รายการ
+
+เลขชุดส่งซ่อม: '+batchCode+'
+ราคารวมทั้งชุด: '+(totalCost||'ไม่ระบุ')+' บาท
+
+'+failed.join('
+'));
+      showToast('บันทึกงานซ่อมได้บางรายการ','success');
+    }else{
+      showToast('✓ สร้างงานซ่อมสำเร็จ '+successCount+' รายการ | '+batchCode,'success');
+    }
+  }catch(e){
+    showToast('บันทึกไม่สำเร็จ: '+e.message,'error');
+  }finally{
+    showLoading(false);
+  }
+}
+
+
+function openReturnModal(maintId,assetId,assetName,maintName){
+  RETURN_CTX={maintId,assetId};
+  document.getElementById('return-asset-name').textContent=assetName||'-';
+  document.getElementById('return-maint-title').textContent=maintName||'-';
+  document.getElementById('return-date').value=todayStr();
+  document.getElementById('return-notes').value='';
+  document.getElementById('return-cost').value='';
+  document.getElementById('return-location').innerHTML='<option value="">-- เลือกตำแหน่ง --</option>'+LOCATIONS.map(l=>`<option value="${l.id}">${escHtml(l.name||('- #'+l.id))}</option>`).join('');
+
+// 🔥 ตั้งค่า default location จาก asset เดิม
+const asset = HARDWARE.find(h => String(h.id) === String(assetId));
+let defaultLoc =
+  (asset && asset.location && asset.location.id) ||
+  (asset && asset.rtd_location && asset.rtd_location.id) ||
+  (asset && asset.default_location && asset.default_location.id) || '';
+
+if(defaultLoc){
+  document.getElementById('return-location').value = String(defaultLoc);
+}
+
+document.getElementById('return-overlay').classList.add('show');
+}
+function closeReturnModal(){document.getElementById('return-overlay').classList.remove('show');}
+
+async function completeMaintenanceOneClick(){
+  if(!RETURN_CTX || !RETURN_CTX.maintId || !RETURN_CTX.assetId){
+    showToast('ไม่พบข้อมูลรายการซ่อม','error'); return;
+  }
+  const completionDate=document.getElementById('return-date').value || todayStr();
+  const locationId=document.getElementById('return-location').value;
+  const notes=document.getElementById('return-notes').value.trim();
+  const costEl=document.getElementById('return-cost');
+  const cost=costEl ? costEl.value.trim() : '';
+  if(!locationId){ showToast('กรุณาเลือกตำแหน่งที่จะวาง','error'); return;}
+
+  showLoading(true);
+  try{
+    const closeBody={completion_date:completionDate};
+    if(notes) closeBody.notes=notes;
+    if(cost!=='') closeBody.cost=cost;
+    const closeResp=await apiPatch('maintenances/'+RETURN_CTX.maintId, closeBody);
+    const closeErr=getResponseError(closeResp);
+    if(closeErr) throw new Error(closeErr);
+
+    const deployableId=getDeployableStatusId();
+    const patchBody={location_id:parseInt(locationId,10),rtd_location_id:parseInt(locationId,10)};
+    if(deployableId) patchBody.status_id=parseInt(deployableId,10);
+    const assetResp=await apiPatch('hardware/'+RETURN_CTX.assetId, patchBody);
+    const assetErr=getResponseError(assetResp);
+    if(assetErr) throw new Error('ปิดงานซ่อมแล้ว แต่ปรับทรัพย์สินไม่ได้: '+assetErr);
+
+    MAINTS=MAINTS.filter(m=>String(m.id)!==String(RETURN_CTX.maintId));
+    updateKpis();
+    renderMaintenances();
+
+    closeReturnModal();
+    RETURN_CTX=null;
+    showToast('✓ รับกลับจากซ่อมสำเร็จ','success');
+    await loadAll();
+  }catch(e){
+    showToast('ปิดงานไม่สำเร็จ: '+e.message,'error');
+  }finally{
+    showLoading(false);
+  }
+}
+
+function renderMaintenances(){
+  const q=(document.getElementById('main-search').value||'').trim().toLowerCase();
+  let rows=[...MAINTS].filter(m=>{
+    if(q){
+      const hay=[m.name||'',m.title||'',m.notes||'',m.asset&&m.asset.name||'',m.asset&&m.asset.asset_tag||'',m.supplier&&m.supplier.name||''].join(' ').toLowerCase();
+      return hay.includes(q);
+    }
+    return true;
+  }).sort((a,b)=>String(fmtDate(b.start_date)).localeCompare(String(fmtDate(a.start_date))));
+  const el=document.getElementById('maint-list');
+  if(!rows.length){el.innerHTML='<div class="empty">ไม่มีงานซ่อมค้างอยู่</div>'; return;}
+  el.innerHTML=rows.map(m=>{
+    const assetName=(m.asset&&m.asset.name)||'-';
+    const assetTag=(m.asset&&m.asset.asset_tag)||('ID '+(getMaintAssetId(m)||'-'));
+    const supplier=(m.supplier&&m.supplier.name)||'-';
+    const title=(m.name||m.title||'-');
+    return `<div class="card">
+      <div class="row">
+        <div><div class="card-title">${escHtml(assetName)}</div><div class="card-sub"># ${escHtml(assetTag)}</div></div>
+        <div><span class="badge">กำลังซ่อม</span></div>
+      </div>
+      <div class="meta">
+        <div><b>หัวข้อ:</b> ${escHtml(title)}</div>
+        <div><b>ประเภท:</b> ${escHtml(m.asset_maintenance_type||'-')}</div>
+        <div><b>เริ่ม:</b> ${escHtml(fmtDate(m.start_date))}</div>
+        <div><b>ผู้รับซ่อม:</b> ${escHtml(supplier)}</div>
+        ${(m.notes)?'<div><b>หมายเหตุ:</b> '+escHtml(m.notes)+'</div>':''}
+      </div>
+      <div class="btn-grid">
+        <button class="btn btn-blue" onclick="openTicket(${m.id})">🖼 ใบงาน</button>
+        <button class="btn btn-secondary" onclick="sendTicketEmail(${m.id})">📧 อีเมล</button>
+        <button class="btn btn-green" onclick='openReturnModal("${m.id}","${getMaintAssetId(m)||0}",${JSON.stringify(assetName)},${JSON.stringify(title)})'>✔ รับกลับ</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function findMaint(id){return MAINTS.find(x=>String(x.id)===String(id));}
+function openTicket(id){
+  const m=findMaint(id); if(!m){showToast('ไม่พบข้อมูลใบงาน','error'); return;}
+  TICKET_CTX=m;
+  const assetName=(m.asset&&m.asset.name)||'-';
+  const assetTag=(m.asset&&m.asset.asset_tag)||('ID '+(getMaintAssetId(m)||'-'));
+  const model=(m.asset&&m.asset.model&&m.asset.model.name)||'-';
+  const supplier=(m.supplier&&m.supplier.name)||'-';
+  document.getElementById('ticket-card').innerHTML=`
+    <div class="head"><img src="LoGoGolden.png" alt=""><div><div class="org">ใบงานซ่อม / Maintenance Work Order</div><div class="sub">สมาคมปึงเถ่ากงม่าขอนแก่น</div></div></div>
+    <div class="line"></div>
+    <div class="item"><b>เลขที่ใบงาน:</b> MT-${String(m.id).padStart(5,'0')}</div>
+    <div class="item"><b>ทรัพย์สิน:</b> ${escHtml(assetName)}</div>
+    <div class="item"><b>รหัสทรัพย์สิน:</b> ${escHtml(assetTag)}</div>
+    <div class="item"><b>รุ่น / Model:</b> ${escHtml(model)}</div>
+    <div class="item"><b>ประเภทงาน:</b> ${escHtml(m.asset_maintenance_type||'-')}</div>
+    <div class="item"><b>ชื่อ/หัวข้อ:</b> ${escHtml(m.name||m.title||'-')}</div>
+    <div class="item"><b>วันที่เริ่ม:</b> ${escHtml(fmtDate(m.start_date))}</div>
+    <div class="item"><b>ผู้รับซ่อม / Supplier:</b> ${escHtml(supplier)}</div>
+    <div class="item"><b>หมายเหตุ:</b> ${escHtml(m.notes||'-')}</div>
+    <div class="item"><b>สถานะ:</b> กำลังซ่อม</div>`;
+  document.getElementById('ticket-card').classList.add('show');
+  document.getElementById('ticket-overlay').classList.add('show');
+}
+function closeTicketModal(){document.getElementById('ticket-overlay').classList.remove('show');}
+async function downloadTicketPng(){
+  const el=document.getElementById('ticket-card'); if(!el.classList.contains('show')) return;
+  const canvas=await html2canvas(el,{backgroundColor:'#ffffff',scale:2});
+  const a=document.createElement('a'); a.href=canvas.toDataURL('image/png'); a.download='maintenance_ticket_'+(TICKET_CTX?String(TICKET_CTX.id).padStart(5,'0'):'ticket')+'.png'; a.click();
+}
+function printTicket(){
+  const el=document.getElementById('ticket-card'); if(!el.classList.contains('show')) return;
+  const w=window.open('', '_blank');
+  w.document.write('<html><head><title>Maintenance Ticket</title><style>img{width:56px!important;height:56px!important;object-fit:contain!important;}</style></head><body style="font-family:Sarabun,sans-serif;padding:20px;background:#fff">'+el.outerHTML+'</body></html>');
+  w.document.close(); w.focus(); setTimeout(()=>w.print(),300);
+}
+function sendTicketLine(){
+  if(!TICKET_CTX){showToast('ไม่พบข้อมูลใบงาน','error'); return;}
+  const m=TICKET_CTX;
+  const assetName=(m.asset&&m.asset.name)||'-';
+  const assetTag=(m.asset&&m.asset.asset_tag)||('ID '+(getMaintAssetId(m)||'-'));
+  const supplier=(m.supplier&&m.supplier.name)||'-';
+  const msg=[
+    'ใบงานซ่อม / Maintenance Work Order',
+    'เลขที่ใบงาน: MT-'+String(m.id).padStart(5,'0'),
+    'ทรัพย์สิน: '+assetName,
+    'รหัสทรัพย์สิน: '+assetTag,
+    'ประเภทงาน: '+(m.asset_maintenance_type||'-'),
+    'ชื่อ/หัวข้อ: '+(m.name||m.title||'-'),
+    'วันที่เริ่ม: '+fmtDate(m.start_date),
+    'ผู้รับซ่อม / Supplier: '+supplier,
+    'หมายเหตุ: '+(m.notes||'-'),
+    'สถานะ: กำลังซ่อม'
+  ].join('\n');
+  const url='https://line.me/R/msg/text/?'+encodeURIComponent(msg);
+  window.open(url,'_blank');
+}
+
+function sendTicketEmail(id){
+  const m=findMaint(id); if(!m){showToast('ไม่พบข้อมูลงานซ่อม','error'); return;}
+  const subject='แจ้งงานซ่อม MT-'+String(m.id).padStart(5,'0')+' - '+((m.asset&&m.asset.name)||'-');
+  const body=[
+    'ใบงานซ่อม / Maintenance Work Order',
+    'สมาคมปึงเถ่ากงม่าขอนแก่น','',
+    'เลขที่ใบงาน: MT-'+String(m.id).padStart(5,'0'),
+    'ทรัพย์สิน: '+((m.asset&&m.asset.name)||'-'),
+    'รหัสทรัพย์สิน: '+((m.asset&&m.asset.asset_tag)||('ID '+(getMaintAssetId(m)||'-'))),
+    'ประเภทงาน: '+(m.asset_maintenance_type||'-'),
+    'ชื่อ/หัวข้อ: '+(m.name||m.title||'-'),
+    'วันที่เริ่ม: '+fmtDate(m.start_date),
+    'ผู้รับซ่อม / Supplier: '+((m.supplier&&m.supplier.name)||'-'),
+    'หมายเหตุ: '+(m.notes||'-'),
+    'สถานะ: กำลังซ่อม'
+  ].join('\n');
+  window.location.href='mailto:kongmakhonkaen@gmail.com?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
+}
+
+
+window.onload=()=>{
+  const saved=localStorage.getItem('snipeit_cfg');
+  if(saved){
+    CONFIG=JSON.parse(saved); if(!CONFIG.url) CONFIG.url='proxy'; if(!CONFIG.token) CONFIG.token='proxy';
+    showScreen('home'); checkConnection(); loadAll();
+  }else{
+    document.getElementById('input-url').value='proxy';
+    document.getElementById('input-token').value='proxy';
+  }
+};
+</script>
+</body>
+</html>
