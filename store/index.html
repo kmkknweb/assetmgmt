@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+<title>ระบบทะเบียนทรัพย์สิน</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
+:root{
+  --bg:#F5F0E8;--card:#FFFDF8;--border:#D4C9A8;
+  --gold:#8B6914;--gold-light:#FDF4DC;
+  --text:#2C2416;--text2:#6B5B3E;--text3:#A89070;
+  --green:#2D6A4F;--blue:#1A5276; /--purple:#6C3483;
+  --radius:16px;--radius-sm:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text);
+  min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;
+}
+.wrap{width:100%;max-width:760px}
+.hero{
+  text-align:center;margin-bottom:22px;
+}
+.hero h1{font-size:28px;font-weight:700;color:var(--gold);margin-bottom:8px}
+.hero p{font-size:14px;color:var(--text2)}
+.grid{
+  display:grid;grid-template-columns:1fr;gap:14px;
+}
+@media(min-width:700px){.grid{grid-template-columns:repeat(3,1fr)}}
+.card{
+  display:block;text-decoration:none;background:var(--card);border:1.5px solid var(--border);
+  border-radius:var(--radius);padding:22px 18px;box-shadow:0 6px 18px rgba(139,105,20,.06);
+  transition:transform .15s ease,border-color .15s ease,box-shadow .15s ease;
+  color:inherit;
+}
+.card:active{transform:scale(.98)}
+.card:hover{border-color:#b89d58;box-shadow:0 8px 22px rgba(139,105,20,.10)}
+.topline{height:4px;border-radius:999px;margin:-6px 0 18px}
+.t-worker{background:var(--green)}
+.t-admin{background:var(--blue)}
+.t-exec{background:var(--purple)}
+.icon{font-size:34px;margin-bottom:10px}
+.title{font-size:18px;font-weight:700;margin-bottom:4px}
+.sub{font-size:13px;color:var(--text2);margin-bottom:12px}
+.desc{font-size:12px;color:var(--text3);line-height:1.6}
+.footer{
+  margin-top:18px;text-align:center;font-size:12px;color:var(--text3)
+}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="hero">
+      <img src="LoGoGolden.png" style="width:120px;height:120px;object-fit:contain;mix-blend-mode:multiply;margin-bottom:12px">
+      <h1>สมาคมปึงเถ่ากงม่าขอนแก่น</h1>
+      <p style="font-size:13px;color:var(--gold);font-weight:600;margin-bottom:4px">ระบบทะเบียนทรัพย์สิน</p>
+      <p>เลือกหน้าที่ต้องการใช้งาน</p>
+    </div>
+
+    <div class="grid">
+      <a class="card" href="store.html">
+        <div class="topline t-worker"></div>
+        <div class="icon">👷</div>
+        <div class="title">Store / Worker</div>
+        <div class="sub">สำหรับพนักงาน / งานหน้าคลัง</div>
+        <div class="desc">ใช้ค้นหา สแกน ตรวจสอบ และทำงานประจำวันกับทรัพย์สิน</div>
+      </a>
+
+      <a class="card" href="admin.html">
+        <div class="topline t-admin"></div>
+        <div class="icon">🛠️</div>
+        <div class="title">Admin</div>
+        <div class="sub">สำหรับผู้ดูแลระบบ</div>
+        <div class="desc">ใช้จัดการข้อมูลหลัก เพิ่ม แก้ไข ลบ และดูแลโครงสร้างข้อมูล</div>
+      </a>
+
+      <a class="card" href="report.html">
+        <div class="topline t-exec"></div>
+        <div class="icon">📊</div>
+        <div class="title">Report / Executive</div>
+        <div class="sub">สำหรับผู้บริหาร</div>
+        <div class="desc">ใช้ดูรายงาน สรุปภาพรวม และตัวเลขสำคัญของระบบทรัพย์สิน</div>
+      </a>
+    </div>
+
+    <div class="footer">ให้อัปโหลดไฟล์นี้เป็น <b>index.html</b></div>
+  </div>
+</body>
+</html>
