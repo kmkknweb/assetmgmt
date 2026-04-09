@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>ประวัติการซ่อม</title>
+<link rel="icon" href="LoGoGolden.png" type="image/png">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+:root{
+  --bg:#F5F0E8;--bg3:#EDE8DC;--card:#FFFDF8;--border:#D4C9A8;
+  --text:#2C2416;--text2:#6B5B3E;--text3:#A89070;--gold:#B8860B;
+  --green:#2D6A4F;--green-light:#D8F3DC;--blue:#1A5276;--blue-light:#D6EAF8;
+  --radius:14px;--radius-sm:9px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.header{background:var(--card);border-bottom:1.5px solid var(--border);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.header-left{display:flex;align-items:center;gap:10px}
+.header-logo{width:42px;height:42px;object-fit:contain;mix-blend-mode:multiply}
+.header-title{font-size:15px;font-weight:700;color:var(--gold)}
+.header-sub{font-size:11px;color:var(--text3);margin-top:1px}
+.page{padding:18px}
+.card{background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px}
+.filters{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.section-label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:8px;letter-spacing:.5px;text-transform:uppercase}
+.field-input{width:100%;background:var(--bg3);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;font-size:14px;color:var(--text);outline:none;font-family:'Sarabun',sans-serif}
+.field-input:focus{border-color:var(--gold)}
+.btn{border:none;border-radius:var(--radius-sm);padding:13px 14px;font-size:14px;font-weight:700;font-family:'Sarabun',sans-serif;cursor:pointer;background:var(--gold);color:#fff}
+.btn-secondary{background:var(--bg3);color:var(--text2);border:1.5px solid var(--border)}
+.btn-blue{background:var(--blue-light);color:var(--blue);border:1.5px solid #85C1E9}
+.top-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.item-title{font-size:15px;font-weight:700}
+.item-sub{font-size:12px;color:var(--text2);margin-top:2px;font-family:'IBM Plex Mono',monospace}
+.meta{font-size:12px;color:var(--text2);line-height:1.7;margin-top:8px}
+.badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;background:var(--blue-light);color:var(--blue)}
+.row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.empty{padding:36px 18px;text-align:center;color:var(--text2)}
+.loading{padding:24px;text-align:center;color:var(--text2)}
+.overlay{position:fixed;inset:0;background:rgba(44,36,22,.6);z-index:200;display:none;align-items:flex-end;justify-content:center}
+.overlay.show{display:flex}
+.dialog{background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius) var(--radius) 0 0;padding:22px 18px 32px;width:100%;max-width:720px;max-height:92vh;overflow-y:auto}
+.dialog h3{font-size:18px;font-weight:700;margin-bottom:10px}
+.dialog-actions{display:grid;grid-template-columns:1fr;gap:10px;margin-top:14px}
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);padding:13px 22px;font-size:14px;font-weight:600;z-index:999;transition:transform .3s ease;white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.error{border-color:#F4A261;color:#C0392B;background:#FDECEA}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="header-left">
+    <img class="header-logo" src="LoGoGolden.png" alt="">
+    <div><div class="header-title">ประวัติการซ่อม</div><div class="header-sub">ค้นหาเฉพาะทรัพย์สินที่เคยมี maintenance</div></div>
+  </div>
+  <button class="btn btn-secondary" onclick="location.href='index.html'">← กลับเมนู</button>
+</div>
+
+<div class="page">
+  <div class="card">
+    <div class="filters">
+      <div>
+        <label class="section-label">Category</label>
+        <select class="field-input" id="cat" onchange="fillModels()">
+          <option value="">ทั้งหมด</option>
+        </select>
+      </div>
+      <div>
+        <label class="section-label">Asset Model</label>
+        <select class="field-input" id="model">
+          <option value="">ทั้งหมด</option>
+        </select>
+      </div>
+    </div>
+    <div class="top-actions">
+      <button class="btn" onclick="renderAssets()">ค้นหา</button>
+      <button class="btn btn-secondary" onclick="resetFilters()">ล้างตัวกรอง</button>
+    </div>
+  </div>
+
+  <div id="list" class="loading">กำลังโหลดข้อมูล...</div>
+</div>
+
+<div class="overlay" id="detail-overlay">
+  <div class="dialog">
+    <h3 id="detail-title">ประวัติการซ่อม</h3>
+    <div id="detail-list"></div>
+    <div class="dialog-actions">
+      <button class="btn btn-secondary" onclick="closeDetail()">ปิด</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const PROXY_URL = "https://script.google.com/macros/s/AKfycbxkoPkmNhRh7Zk7jGYaTgMT9pA3KzdxWJ-mh8l_0Hh8purwBwEjDiBP7mH5KBG52lqKbA/exec";
+let ALL_MAINTS = [];
+let HARDWARE = [];
+let MODELS = [];
+let ASSETS_WITH_MAINT = [];
+
+function escHtml(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function fmtDate(v) {
+  if (!v) return '-';
+  if (typeof v === 'string') return v;
+  if (typeof v === 'object') return v.formatted || v.date || v.datetime || '-';
+  return String(v);
+}
+function showToast(msg, type='error') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + type;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+async function proxyGet(endpoint) {
+  const qs = new URLSearchParams({ endpoint, method: 'GET' });
+  const r = await fetch(PROXY_URL + '?' + qs.toString(), {
+    method: 'GET',
+    headers: { 'Accept': 'application/json' }
+  });
+  const t = await r.text();
+  let data = {};
+  try { data = t ? JSON.parse(t) : {}; } catch (_) { data = { raw: t }; }
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  if (data && data.error === true) throw new Error(data.message || 'Proxy error');
+  return data;
+}
+function getMaintAssetId(m) {
+  if (!m) return '';
+  if (m.asset_id !== undefined && m.asset_id !== null && String(m.asset_id) !== '') return String(m.asset_id);
+  if (m.asset && m.asset.id !== undefined && m.asset.id !== null && String(m.asset.id) !== '') return String(m.asset.id);
+  return '';
+}
+function getAssetModelId(a) {
+  if (!a) return '';
+  if (a.model && a.model.id != null) return String(a.model.id);
+  return '';
+}
+function getAssetCategoryId(a) {
+  if (!a) return '';
+  if (a.model && a.model.category && a.model.category.id != null) return String(a.model.category.id);
+  return '';
+}
+
+async function init() {
+  try {
+    const [m, h, mo] = await Promise.all([
+      proxyGet('maintenances?limit=500'),
+      proxyGet('hardware?limit=500'),
+      proxyGet('models?limit=500')
+    ]);
+    ALL_MAINTS = m.rows || [];
+    HARDWARE = h.rows || [];
+    MODELS = mo.rows || [];
+
+    const maintAssetIds = new Set(
+      ALL_MAINTS.map(getMaintAssetId).filter(Boolean)
+    );
+    ASSETS_WITH_MAINT = HARDWARE.filter(a => maintAssetIds.has(String(a.id)));
+
+    fillCategories();
+    fillModels();
+    renderAssets();
+  } catch (e) {
+    document.getElementById('list').innerHTML = '<div class="empty">โหลดข้อมูลไม่สำเร็จ</div>';
+    showToast('โหลดข้อมูลไม่สำเร็จ: ' + e.message);
+  }
+}
+
+function fillCategories() {
+  const map = new Map();
+  ASSETS_WITH_MAINT.forEach(a => {
+    const catId = getAssetCategoryId(a);
+    const catName = a && a.model && a.model.category && a.model.category.name ? a.model.category.name : '';
+    if (catId && catName && !map.has(catId)) map.set(catId, catName);
+  });
+  const cat = document.getElementById('cat');
+  cat.innerHTML = '<option value="">ทั้งหมด</option>' +
+    Array.from(map.entries())
+      .sort((a,b) => String(a[1]).localeCompare(String(b[1]), 'th'))
+      .map(([id, name]) => `<option value="${id}">${escHtml(name)}</option>`)
+      .join('');
+}
+
+function fillModels() {
+  const catId = document.getElementById('cat').value;
+  const modelMap = new Map();
+  ASSETS_WITH_MAINT.forEach(a => {
+    const aCatId = getAssetCategoryId(a);
+    const modelId = getAssetModelId(a);
+    const modelName = a && a.model && a.model.name ? a.model.name : '';
+    if (!modelId || !modelName) return;
+    if (catId && aCatId !== catId) return;
+    if (!modelMap.has(modelId)) modelMap.set(modelId, modelName);
+  });
+  const model = document.getElementById('model');
+  model.innerHTML = '<option value="">ทั้งหมด</option>' +
+    Array.from(modelMap.entries())
+      .sort((a,b) => String(a[1]).localeCompare(String(b[1]), 'th'))
+      .map(([id, name]) => `<option value="${id}">${escHtml(name)}</option>`)
+      .join('');
+}
+
+function resetFilters() {
+  document.getElementById('cat').value = '';
+  fillModels();
+  document.getElementById('model').value = '';
+  renderAssets();
+}
+
+function renderAssets() {
+  const catId = document.getElementById('cat').value;
+  const modelId = document.getElementById('model').value;
+
+  let rows = ASSETS_WITH_MAINT.filter(a => {
+    if (catId && getAssetCategoryId(a) !== catId) return false;
+    if (modelId && getAssetModelId(a) !== modelId) return false;
+    return true;
+  });
+
+  rows.sort((a,b) => String(a.name||'').localeCompare(String(b.name||''), 'th'));
+
+  const list = document.getElementById('list');
+  if (!rows.length) {
+    list.innerHTML = '<div class="empty">ไม่พบทรัพย์สินที่มีประวัติการซ่อมตามเงื่อนไขนี้</div>';
+    return;
+  }
+
+  list.innerHTML = rows.map(a => {
+    const records = ALL_MAINTS.filter(m => getMaintAssetId(m) === String(a.id));
+    const lastDate = records.length ? fmtDate(records[0].start_date) : '-';
+    return `
+      <div class="card">
+        <div class="row">
+          <div>
+            <div class="item-title">${escHtml(a.name || '-')}</div>
+            <div class="item-sub"># ${escHtml(a.asset_tag || '-')} · ${escHtml(a.model && a.model.name || '-')}</div>
+          </div>
+          <span class="badge">ซ่อม ${records.length} ครั้ง</span>
+        </div>
+        <div class="meta">
+          <div><b>หมวดหมู่:</b> ${escHtml(a.model && a.model.category && a.model.category.name || '-')}</div>
+          <div><b>ซ่อมล่าสุด:</b> ${escHtml(lastDate)}</div>
+        </div>
+        <div style="margin-top:10px">
+          <button class="btn btn-blue" onclick="openDetail('${String(a.id)}')">ดูประวัติ</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function openDetail(assetId) {
+  const asset = ASSETS_WITH_MAINT.find(a => String(a.id) === String(assetId));
+  const records = ALL_MAINTS
+    .filter(m => getMaintAssetId(m) === String(assetId))
+    .sort((a,b) => String(fmtDate(b.start_date)).localeCompare(String(fmtDate(a.start_date))));
+
+  document.getElementById('detail-title').textContent =
+    'ประวัติการซ่อม: ' + (asset && asset.name ? asset.name : '-');
+
+  const detail = document.getElementById('detail-list');
+  if (!records.length) {
+    detail.innerHTML = '<div class="empty">ไม่พบประวัติ</div>';
+  } else {
+    detail.innerHTML = records.map(r => `
+      <div class="card">
+        <div class="row">
+          <div class="item-title">${escHtml(r.name || r.title || '-')}</div>
+          <span class="badge">${escHtml(r.asset_maintenance_type || '-')}</span>
+        </div>
+        <div class="meta">
+          <div><b>วันที่เริ่ม:</b> ${escHtml(fmtDate(r.start_date))}</div>
+          <div><b>วันที่เสร็จ:</b> ${escHtml(fmtDate(r.completion_date))}</div>
+          <div><b>Supplier:</b> ${escHtml(r.supplier && r.supplier.name || '-')}</div>
+          <div><b>ค่าใช้จ่าย:</b> ${escHtml(r.cost != null && r.cost !== '' ? r.cost : '-')}</div>
+          <div><b>หมายเหตุ:</b> ${escHtml(r.notes || '-')}</div>
+        </div>
+      </div>
+    `).join('');
+  }
+  document.getElementById('detail-overlay').classList.add('show');
+}
+
+function closeDetail() {
+  document.getElementById('detail-overlay').classList.remove('show');
+}
+
+init();
+</script>
+</body>
+</html>
