@@ -493,37 +493,75 @@ function renderResults(ar,cr,acr,label,el){
   const total=ar.length+cr.length+acr.length;
   if(!total){el.innerHTML='<div class="empty">❌ ไม่พบพัสดุสำหรับ "'+escapeHtml(label)+'" ในระบบ</div>';return;}
   let html='<div class="result-meta">พบทั้งหมด '+total+' รายการ สำหรับ "'+escapeHtml(label)+'"</div>';
-  if(ar.length){
-    html+='<div class="type-divider">📦 Asset ('+ar.length+')</div>';
-    ar.forEach(r=>{
-      const loc=r.location?r.location.name:(r.rtd_location?r.rtd_location.name:'-');
-      const user=r.assigned_to?r.assigned_to.name:'-';
-      const hasUser=r.assigned_to&&r.assigned_to.id;
-      const statusName=r.status_label?r.status_label.name:'-';
-      const badge=hasUser ? '<span class="badge badge-deployed">🔴 กำลังถูกเบิกใช้งานอยู่</span>' : '<span class="badge badge-ready">'+escapeHtml(statusName)+'</span>';
-      const item=normalizeAssetItem(r);
-      html+='<div class="item-card"><div class="item-type type-asset">Asset</div>';
 
 
-const img = imageUrl
-  ? '<img src="'+imageUrl+'" style="width:60px;height:60px;object-fit:cover;border-radius:8px;flex-shrink:0;">'
-  : '<div style="width:60px;height:60px;background:#eee;border-radius:8px;flex-shrink:0;"></div>';
 
-html +=
-  '<div class="item-card">' +
-    '<div class="item-type type-asset">Asset</div>' +
-    '<div class="item-top">' +
-      '<div style="display:flex;gap:10px;flex:1;min-width:0;">' +
-        img +
-        '<div style="flex:1;min-width:0;">' +
-          '<div class="item-name">'+escapeHtml(r.name||'-')+'</div>' +
-          '<div class="item-loc">📍 '+escapeHtml(loc)+'</div>' +
-          '<div class="item-rows">...</div>' +
+if(ar.length){
+  html += '<div class="type-divider">📦 Asset ('+ar.length+')</div>';
+
+  ar.forEach(r=>{
+    const loc = r.location ? r.location.name : (r.rtd_location ? r.rtd_location.name : '-');
+    const user = r.assigned_to ? r.assigned_to.name : '-';
+    const hasUser = r.assigned_to && r.assigned_to.id;
+    const statusName = r.status_label ? r.status_label.name : '-';
+
+    const badge = hasUser
+      ? '<span class="badge badge-deployed">🔴 กำลังถูกเบิกใช้งานอยู่</span>'
+      : '<span class="badge badge-ready">'+escapeHtml(statusName)+'</span>';
+
+    const item = normalizeAssetItem(r);
+
+    // ✅ ส่วนรูป (กันพังครบ)
+    const rawImage =
+      r.image ||
+      r.image_url ||
+      r.thumbnail ||
+      '';
+
+    const imageUrl = rawImage ? rawImage : '';
+
+    const img = imageUrl
+      ? '<img src="'+imageUrl+'" loading="lazy" style="width:60px;height:60px;object-fit:cover;border-radius:8px;flex-shrink:0;">'
+      : '<div style="width:60px;height:60px;background:#eee;border-radius:8px;flex-shrink:0;"></div>';
+
+    html +=
+      '<div class="item-card">' +
+
+        '<div class="item-type type-asset">Asset</div>' +
+
+        '<div class="item-top">' +
+
+          // 🔹 ซ้าย (รูป + ข้อมูล)
+          '<div style="display:flex;gap:10px;flex:1;min-width:0;">' +
+
+            img +
+
+            '<div style="flex:1;min-width:0;">' +
+
+              '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">' +
+                '<div class="item-name">'+escapeHtml(r.name||'-')+'</div>' +
+                badge +
+              '</div>' +
+
+              '<div class="item-loc">📍 '+escapeHtml(loc)+'</div>' +
+
+              '<div class="item-rows">' +
+                '<div class="item-row">Tag: <b>'+escapeHtml(r.asset_tag||'-')+'</b></div>' +
+                '<div class="item-row">Model: <b>'+escapeHtml(r.model ? r.model.name : '-')+'</b></div>' +
+                (hasUser ? '<div class="item-row">ผู้เบิก: <b>'+escapeHtml(user)+'</b></div>' : '') +
+              '</div>' +
+
+            '</div>' +
+          '</div>' +
+
+          // 🔹 ขวา (ปุ่ม)
+          buildAddButton(item) +
+
         '</div>' +
-      '</div>' +
-      buildAddButton(item) +
-    '</div>' +
-  '</div>';
+
+      '</div>';
+  });
+}
 
 
       
@@ -532,16 +570,16 @@ html +=
 
 
 
-      
-      
-      
-      html+='<div class="item-top"><div style="flex:1"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px"><div class="item-name">'+escapeHtml(r.name||'-')+'</div>'+badge+'</div>';
-      html+='<div class="item-loc">📍 '+escapeHtml(loc)+'</div>';
-      html+='<div class="item-rows"><div class="item-row">Tag: <b>'+escapeHtml(r.asset_tag||'-')+'</b></div><div class="item-row">Model: <b>'+escapeHtml(r.model?r.model.name:'-')+'</b></div>';
-      if(hasUser) html+='<div class="item-row">ผู้เบิก: <b>'+escapeHtml(user)+'</b></div>';
-      html+='</div></div>'+buildAddButton(item)+'</div></div>';
-    });
-  }
+
+
+
+
+
+
+
+
+
+  
   if(cr.length){
     html+='<div class="type-divider">🧴 Consumable ('+cr.length+')</div>';
     cr.forEach(r=>{
