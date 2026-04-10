@@ -504,15 +504,35 @@ function renderResults(ar,cr,acr,label,el){
       const item=normalizeAssetItem(r);
       html+='<div class="item-card"><div class="item-type type-asset">Asset</div>';
 
-      const imageUrl =
-  r.image ||
-  r.image_url ||
-  r.thumbnail ||
-  '';
 
 const img = imageUrl
-  ? '<img src="'+imageUrl+'" style="width:60px;height:60px;object-fit:cover;border-radius:8px;margin-right:10px;">'
-  : '<div style="width:60px;height:60px;background:#eee;border-radius:8px;margin-right:10px;"></div>';
+  ? '<img src="'+imageUrl+'" style="width:60px;height:60px;object-fit:cover;border-radius:8px;flex-shrink:0;">'
+  : '<div style="width:60px;height:60px;background:#eee;border-radius:8px;flex-shrink:0;"></div>';
+
+html +=
+  '<div class="item-card">' +
+    '<div class="item-type type-asset">Asset</div>' +
+    '<div class="item-top">' +
+      '<div style="display:flex;gap:10px;flex:1;min-width:0;">' +
+        img +
+        '<div style="flex:1;min-width:0;">' +
+          '<div class="item-name">'+escapeHtml(r.name||'-')+'</div>' +
+          '<div class="item-loc">📍 '+escapeHtml(loc)+'</div>' +
+          '<div class="item-rows">...</div>' +
+        '</div>' +
+      '</div>' +
+      buildAddButton(item) +
+    '</div>' +
+  '</div>';
+
+
+      
+
+
+
+
+
+      
       
       
       html+='<div class="item-top"><div style="flex:1"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px"><div class="item-name">'+escapeHtml(r.name||'-')+'</div>'+badge+'</div>';
