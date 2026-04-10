@@ -503,18 +503,17 @@ function renderResults(ar,cr,acr,label,el){
       const badge=hasUser ? '<span class="badge badge-deployed">🔴 กำลังถูกเบิกใช้งานอยู่</span>' : '<span class="badge badge-ready">'+escapeHtml(statusName)+'</span>';
       const item=normalizeAssetItem(r);
       html+='<div class="item-card"><div class="item-type type-asset">Asset</div>';
-      const img = r.image
-  ? '<img src="'+r.image+'" style="width:60px;height:60px;object-fit:cover;border-radius:8px;margin-right:10px;">'
+
+      const imageUrl =
+  r.image ||
+  r.image_url ||
+  r.thumbnail ||
+  '';
+
+const img = imageUrl
+  ? '<img src="'+imageUrl+'" style="width:60px;height:60px;object-fit:cover;border-radius:8px;margin-right:10px;">'
   : '<div style="width:60px;height:60px;background:#eee;border-radius:8px;margin-right:10px;"></div>';
-
-html+='<div class="item-card"><div class="item-type type-asset">Asset</div>';
-
-html+='<div class="item-top">' +
-  '<div style="display:flex;gap:10px;flex:1">' +
-    img +
-    '<div style="flex:1">' +
-      '<div class="item-name">'+escapeHtml(r.name||'-')+'</div>';
-
+      
       
       html+='<div class="item-top"><div style="flex:1"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px"><div class="item-name">'+escapeHtml(r.name||'-')+'</div>'+badge+'</div>';
       html+='<div class="item-loc">📍 '+escapeHtml(loc)+'</div>';
