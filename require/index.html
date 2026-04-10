@@ -138,7 +138,7 @@ body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text);min
             <option value="consumable">Consumable</option>
             <option value="accessory">Accessory</option>
           </select>
-        </div>
+        </div>ใน
         <div class="filter-group">
           <div class="filter-label">หมวดหมู่ (Category)</div>
           <select id="cat-select" class="filter-select" onchange="onCatChange()" disabled>
@@ -503,6 +503,19 @@ function renderResults(ar,cr,acr,label,el){
       const badge=hasUser ? '<span class="badge badge-deployed">🔴 กำลังถูกเบิกใช้งานอยู่</span>' : '<span class="badge badge-ready">'+escapeHtml(statusName)+'</span>';
       const item=normalizeAssetItem(r);
       html+='<div class="item-card"><div class="item-type type-asset">Asset</div>';
+      const img = r.image
+  ? '<img src="'+r.image+'" style="width:60px;height:60px;object-fit:cover;border-radius:8px;margin-right:10px;">'
+  : '<div style="width:60px;height:60px;background:#eee;border-radius:8px;margin-right:10px;"></div>';
+
+html+='<div class="item-card"><div class="item-type type-asset">Asset</div>';
+
+html+='<div class="item-top">' +
+  '<div style="display:flex;gap:10px;flex:1">' +
+    img +
+    '<div style="flex:1">' +
+      '<div class="item-name">'+escapeHtml(r.name||'-')+'</div>';
+
+      
       html+='<div class="item-top"><div style="flex:1"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px"><div class="item-name">'+escapeHtml(r.name||'-')+'</div>'+badge+'</div>';
       html+='<div class="item-loc">📍 '+escapeHtml(loc)+'</div>';
       html+='<div class="item-rows"><div class="item-row">Tag: <b>'+escapeHtml(r.asset_tag||'-')+'</b></div><div class="item-row">Model: <b>'+escapeHtml(r.model?r.model.name:'-')+'</b></div>';
