@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ระบบเตรียมใบเบิกงานพัสดุในพิธีและกิจกรรมต่างๆ</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F5F0E8;--card:#FFFDF8;--border:#D4C9A8;--text:#2C2416;--sub:#6B5B3E;
+  --gold:#8B6914;--ok:#2D6A4F;--warn:#B5550A;--err:#C0392B;
+}
+*{box-sizing:border-box}
+body{margin:0 auto;max-width:900px;padding:12px;font-family:'Noto Sans Thai',Arial,sans-serif;background:var(--bg);color:var(--text)}
+.card{background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:18px;margin-bottom:14px}
+h2{margin:0 0 10px;font-size:17px}
+.sub{font-size:13px;color:var(--sub);line-height:1.6}
+.row{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end}
+label{display:block;font-size:12px;font-weight:700;color:var(--sub);margin-bottom:6px}
+select,input,textarea{width:100%;padding:11px 13px;border:1.5px solid var(--border);border-radius:10px;background:#fff;font-size:14px;font-family:inherit}
+textarea{min-height:130px;resize:vertical}
+button{padding:11px 15px;border:none;border-radius:10px;background:var(--gold);color:#fff;font-weight:700;cursor:pointer;font-family:inherit;font-size:13px}
+button:hover{opacity:.88}
+button.sec{background:#EDE8DC;color:var(--sub);border:1.5px solid var(--border)}
+.status{margin-top:10px;padding:10px 12px;border-radius:10px;font-size:13px}
+.status.ok{background:#D8F3DC;color:var(--ok)}
+.status.warn{background:#FEE8D6;color:var(--warn)}
+.status.err{background:#FDECEA;color:var(--err)}
+
+/* Tabs */
+.tabs{display:flex;gap:0;margin-bottom:14px;border-radius:12px;overflow:hidden;border:1.5px solid var(--border)}
+.tab-btn{flex:1;padding:11px;border:none;background:#EDE8DC;color:var(--sub);font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;transition:.15s}
+.tab-btn.active{background:var(--gold);color:#fff}
+.tab-btn:not(:last-child){border-right:1.5px solid var(--border)}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
+/* Items */
+.items{display:grid;gap:0}
+.item{padding:9px 2px;border-bottom:1px solid var(--border)}
+.item:last-child{border-bottom:none}
+.item-top{display:grid;grid-template-columns:1fr 110px;gap:10px;align-items:start}
+.iname{font-weight:700;font-size:14px}
+.imeta{font-size:12px;color:var(--sub);line-height:1.7;margin-top:3px}
+.badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;margin-right:3px}
+.b-worship{background:#FFF9C4;color:#6B5100}
+.b-paper{background:#F3E5F5;color:#6C3483}
+.b-flower{background:#E8F5E9;color:#1B5E20}
+.b-cloth{background:#FBE9E7;color:#880E4F}
+.b-meat{background:#FCE4EC;color:#AD1457}
+.b-veg{background:#E0F2F1;color:#00695C}
+.b-fruit{background:#E3F2FD;color:#0D47A1}
+.b-special{background:#FFF3E0;color:#E65100}
+/* equipment badges */
+.b-table{background:#E3F2FD;color:#0D47A1}
+.b-tent{background:#E8F5E9;color:#1B5E20}
+.b-electric{background:#FFF9C4;color:#6B5100}
+.b-sound{background:#F3E5F5;color:#6C3483}
+.b-clean{background:#FCE4EC;color:#AD1457}
+.b-service{background:#FBE9E7;color:#880E4F}
+.b-sign{background:#E0F2F1;color:#00695C}
+.b-safety{background:#FFF3E0;color:#E65100}
+.b-ritual{background:#FFF8E1;color:#5D4037}
+.b-food{background:#F1F8E9;color:#33691E}
+.b-base{background:#E8EAF6;color:#283593}
+
+.empty{padding:30px;text-align:center;color:var(--sub);font-size:14px}
+.note-veg{background:#E0F2F1;border:1px solid #80CBC4;color:#004D40;padding:8px 12px;border-radius:8px;font-size:12px;margin-bottom:10px}
+.note-base{background:#E8EAF6;border:1px solid #9FA8DA;color:#283593;padding:8px 12px;border-radius:8px;font-size:12px;margin-bottom:10px}
+.qty-box{text-align:right}
+.qty-box .qlabel{font-size:11px;color:var(--sub);font-weight:700;margin-bottom:4px}
+.qty-box input{width:80px;text-align:center}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.muted{font-size:12px;color:#A89070}
+.small{font-size:12px}
+.section-title{font-size:13px;font-weight:700;color:var(--gold);padding:6px 0 4px;border-bottom:1px solid var(--border);margin-bottom:8px}
+@media(max-width:600px){
+  .item-top{grid-template-columns:1fr}
+  .actions button{font-size:12px;padding:9px 11px}
+}
+
+/* Custom add rows */
+.add-section{margin-top:14px;padding-top:12px;border-top:2px dashed var(--border)}
+.add-section .title{font-size:12px;font-weight:700;color:var(--gold);margin-bottom:8px}
+.custom-row{display:grid;grid-template-columns:1fr 90px 36px;gap:6px;align-items:center;margin-bottom:6px}
+.custom-row input[type=text]{padding:8px 10px;font-size:13px}
+.custom-row input[type=number]{padding:8px 6px;font-size:13px;text-align:center}
+.btn-del{width:36px;height:36px;border:none;background:#FDECEA;color:#C0392B;border-radius:8px;cursor:pointer;font-size:16px;line-height:1}
+.btn-add-row{padding:7px 12px;border:1.5px dashed var(--gold);background:transparent;color:var(--gold);border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;margin-top:4px}
+.btn-add-row:hover{background:var(--gold);color:#fff}
+
+@media print {
+  /* ซ่อนส่วนที่ไม่ต้องการ */
+  .card:first-child,        /* header โลโก้ */
+  .card:nth-child(2),       /* ช่องเลือกงาน + ปุ่มโหลด */
+  .tabs,                    /* tab buttons */
+  .tab-panel:not(.active),  /* tab ที่ไม่ได้แสดง */
+  .add-section,             /* ช่องเพิ่มรายการเอง */
+  .actions,                 /* ปุ่มทั้งหมด */
+  #summaryBox,              /* กล่อง textarea */
+  .muted,                   /* ข้อความ ยังไม่ใช่การเบิกจริง */
+  .note-base .btn-del,
+  .btn-add-row,
+  .qty-box input            /* ซ่อน input box ตัวเลข */
+    { display: none !important; }
+
+  /* แสดงจำนวนเป็น text แทน input */
+  .qty-box::after {
+    content: attr(data-qty);
+    font-weight: 700;
+    font-size: 13px;
+  }
+
+  body { background: #fff; padding: 0; max-width: 100%; }
+
+  .card {
+    border: none !important;
+    border-radius: 0 !important;
+    padding: 8px 0 !important;
+    margin-bottom: 4px !important;
+    box-shadow: none !important;
+  }
+
+  /* Print header */
+  .print-header { display: block !important; }
+
+  .tab-panel.active { display: block !important; }
+
+  .item {
+    padding: 5px 2px !important;
+    page-break-inside: avoid;
+  }
+
+  .item-top {
+    grid-template-columns: 1fr 60px !important;
+  }
+
+  .section-title {
+    font-size: 12px !important;
+    margin-top: 8px !important;
+  }
+
+  .note-veg, .note-base {
+    padding: 4px 8px !important;
+    font-size: 11px !important;
+  }
+
+  /* แสดงจำนวนจริงแทน input */
+  .qty-display { display: inline !important; font-weight: 700; }
+}
+
+/* ซ่อน print-only elements ปกติ */
+.print-header { display: none; }
+.qty-display { display: none; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="card" style="display:flex;align-items:center;gap:14px">
+  <img src="logogolden.png" alt="โลโก้" style="width:60px;height:60px;object-fit:contain">
+  <div>
+    <div style="font-size:20px;font-weight:700;color:var(--gold)">สมาคมปึงเถ่ากงม่าขอนแก่น</div>
+    <div class="sub">ระบบเตรียมใบเบิกงานพัสดุในพิธีและกิจกรรมต่างๆ</div>
+  </div>
+</div>
+
+<!-- เลือกงาน -->
+<div class="card">
+  <h2>เลือกงานพิธีหรือกิจกรรม</h2>
+  <div class="row">
+    <div>
+      <label>เลือกงาน / พิธี / กิจกรรม</label>
+      <select id="templateSelect">
+        <option value="">-- กำลังโหลดงาน --</option>
+      </select>
+    </div>
+    <button onclick="loadTemplate()">โหลดรายการ</button>
+  </div>
+  <div id="sheetStatus" class="status warn">กำลังเตรียมข้อมูล...</div>
+</div>
+
+
+<!-- แสดงเฉพาะตอนพิมพ์ -->
+<div class="print-header" id="printHeader" style="margin-bottom:12px">
+  <div style="font-size:18px;font-weight:700;color:#2C2416" id="printTitle">ใบเตรียมเบิกงานพัสดุ</div>
+  <div style="font-size:13px;color:#6B5B3E" id="printSubtitle">สมาคมปึงเถ่ากงม่าขอนแก่น</div>
+  <hr style="border:1px solid #D4C9A8;margin:6px 0">
+</div>
+
+<!-- แสดงรายการ (Tab) -->
+<div class="card">
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('worship')">🙏 ของไหว้</button>
+    <button class="tab-btn" onclick="switchTab('equipment')">🪑 วัสดุอุปกรณ์</button>
+  </div>
+
+  <!-- Tab: ของไหว้ -->
+  <div class="tab-panel active" id="panel-worship">
+    <div class="sub" style="margin-bottom:10px">รายการของไหว้ตาม template มาตรฐาน</div>
+    <div id="items-worship" class="items">
+      <div class="empty">กรุณาเลือกงานแล้วกด "โหลดรายการ"</div>
+    </div>
+  
+  <!-- เพิ่มเติมของไหว้ -->
+  <div class="add-section" id="custom-worship-section" style="display:none">
+    <div class="title">✏️ เพิ่มรายการของไหว้เอง</div>
+    <div id="custom-worship-rows"></div>
+    <button class="btn-add-row" onclick="addCustomRow('worship')">+ เพิ่มรายการ</button>
+  </div>
+</div>
+
+  <!-- Tab: วัสดุอุปกรณ์ -->
+  <div class="tab-panel" id="panel-equipment">
+    <div class="sub" style="margin-bottom:10px">วัสดุอุปกรณ์จัดงาน — ฐานกลาง + เพิ่มเติมเฉพาะงาน</div>
+    <div id="items-equipment" class="items">
+      <div class="empty">กรุณาเลือกงานแล้วกด "โหลดรายการ"</div>
+    </div>
+  
+  <!-- เพิ่มเติมวัสดุ -->
+  <div class="add-section" id="custom-equip-section" style="display:none">
+    <div class="title">✏️ เพิ่มรายการวัสดุอุปกรณ์เอง</div>
+    <div id="custom-equip-rows"></div>
+    <button class="btn-add-row" onclick="addCustomRow('equip')">+ เพิ่มรายการ</button>
+  </div>
+  </div>
+</div>
+
+<!-- สรุปและส่งออก -->
+<div class="card">
+  <div class="actions">
+    <button class="sec" onclick="clearAll()">ล้างรายการ</button>
+    <button onclick="buildSummary()">สร้างสรุปรายการ</button>
+    <button onclick="printPage()">พิมพ์ / PDF</button>
+    <button onclick="sendLine()">ส่ง LINE</button>
+    <button onclick="sendEmail()">ส่ง Email</button>
+  </div>
+  <div class="small" style="margin-bottom:6px;color:var(--sub);font-weight:700">สรุปรายการเบิก (ทั้งของไหว้ + วัสดุอุปกรณ์)</div>
+  <textarea id="summaryBox" placeholder="กดสร้างสรุปรายการ ข้อมูลจะขึ้นที่นี่"></textarea>
+  <div class="muted" style="margin-top:8px">⚠️ ยังไม่ใช่การเบิกจริง เป็นเพียงใบเตรียมเบิก</div>
+</div>
+
+<script>
+// ===== CONFIG — เปลี่ยน SHEET_ID ให้ตรงกับ Google Sheet =====
+const SHEET_ID = "1f2bUg_LPG2jRsXLv3JyOK-UQ_geXgA-w";
+
+let templates = [];
+let worshipItems = [];    // template_items
+let eqBaseItems = [];     // equipment_base (ทุกงาน)
+let eqExtraItems = [];    // equipment_items (เฉพาะงาน)
+
+let curWorship = [];
+let curEquip = [];
+let activeTab = 'worship';
+
+const $ = id => document.getElementById(id);
+
+function setStatus(msg, type){
+  const el = $('sheetStatus');
+  el.textContent = msg;
+  el.className = 'status ' + type;
+}
+
+function esc(s){ return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function gviz(sheet){
+  return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheet)}`;
+}
+
+async function fetchSheet(name){
+  const res = await fetch(gviz(name), {cache:'no-store'});
+  if(!res.ok) throw new Error('เปิด sheet ไม่ได้: '+res.status);
+  const txt = await res.text();
+  const m = txt.match(/google\.visualization\.Query\.setResponse\(([\s\S]+?)\);/);
+  if(!m) throw new Error('อ่านข้อมูลไม่ได้');
+  const j = JSON.parse(m[1]);
+  return (j.table && j.table.rows) ? j.table.rows : [];
+}
+
+function cv(row, i){ return row?.c?.[i]?.v ?? ''; }
+
+// Badge สีของไหว้
+const WORSHIP_BADGE = {
+  'ของไหว้':'worship','กระดาษไหว้':'paper','ดอกไม้':'flower',
+  'ชุดเพ้า/สิ่งของมงคล':'cloth','อาหาร (มีเนื้อสัตว์)':'meat',
+  'อาหารเจ':'veg','ผลไม้':'fruit','ของพิเศษประจำงาน':'special',
+};
+
+// Badge สีวัสดุ
+const EQ_BADGE = {
+  'โต๊ะ/เก้าอี้':'table','เต็นท์/ผ้าใบ':'tent','แสงสว่าง/ไฟฟ้า':'electric',
+  'เครื่องเสียง':'sound','ทำความสะอาด':'clean','อำนวยความสะดวก':'service',
+  'ป้าย/ประชาสัมพันธ์':'sign','ความปลอดภัย':'safety','พิธีกรรม':'ritual',
+  'อาหาร/บริการ':'food',
+};
+
+function wBadge(cat){
+  const c = WORSHIP_BADGE[cat]||'worship';
+  return `<span class="badge b-${c}">${esc(cat)}</span>`;
+}
+
+function eBadge(cat, isBase){
+  if(isBase) return `<span class="badge b-base">ฐานกลาง</span><span class="badge b-${EQ_BADGE[cat]||'service'}">${esc(cat)}</span>`;
+  return `<span class="badge b-${EQ_BADGE[cat]||'service'}">${esc(cat)}</span>`;
+}
+
+// ===== INIT =====
+async function init(){
+  try{
+    setStatus('กำลังโหลดข้อมูลจาก Google Sheet...','warn');
+    const [tRows, wRows, bRows, eRows] = await Promise.all([
+      fetchSheet('templates'),
+      fetchSheet('template_items'),
+      fetchSheet('equipment_base'),
+      fetchSheet('equipment_items'),
+    ]);
+
+    templates = tRows.map(r=>({
+      id: String(cv(r,0)).trim(),
+      name: String(cv(r,1)).trim(),
+      date: String(cv(r,2)).trim(),
+      note: String(cv(r,3)).trim(),
+    })).filter(x=>x.id && x.name);
+
+    worshipItems = wRows.map(r=>({
+      tid: String(cv(r,0)).trim(),
+      name: String(cv(r,1)).trim(),
+      cat: String(cv(r,2)).trim(),
+      item: String(cv(r,3)).trim(),
+      defQty: String(cv(r,4)).trim(),
+      unit: String(cv(r,5)).trim(),
+      note: String(cv(r,6)).trim(),
+    })).filter(x=>x.tid && x.item && !x.item.startsWith('('));
+
+    // equipment_base: col 0=หมวด, 1=ชื่อ, 2=จำนวนขั้นต่ำ, 3=หน่วย, 4=งานเล็ก, 5=งานกลาง, 6=งานใหญ่
+    eqBaseItems = bRows.slice(1).map(r=>({ // skip header
+      cat: String(cv(r,0)).trim(),
+      item: String(cv(r,1)).trim(),
+      minQty: cv(r,2)||0,
+      unit: String(cv(r,3)).trim(),
+      small: cv(r,4)||0,
+      medium: cv(r,5)||0,
+      large: cv(r,6)||0,
+    })).filter(x=>x.item && x.item !== 'ชื่อวัสดุ/อุปกรณ์');
+
+    // equipment_items: col 0=tid, 1=name, 2=หมวด, 3=ชื่อ, 4=จำนวน, 5=หน่วย/หมายเหตุ
+    eqExtraItems = eRows.slice(1).map(r=>({
+      tid: String(cv(r,0)).trim(),
+      tname: String(cv(r,1)).trim(),
+      cat: String(cv(r,2)).trim(),
+      item: String(cv(r,3)).trim(),
+      defQty: cv(r,4)||1,
+      note: String(cv(r,5)).trim(),
+    })).filter(x=>x.tid && x.item && !x.item.startsWith('('));
+
+    $('templateSelect').innerHTML =
+      '<option value="">-- เลือกงาน --</option>' +
+      templates.map(t=>`<option value="${esc(t.id)}">${esc(t.name)}${t.date?' ('+t.date+')':''}</option>`).join('');
+
+    setStatus('พร้อมใช้งาน — โหลดข้อมูลครบทุก sheet แล้ว','ok');
+  }catch(err){
+    $('templateSelect').innerHTML = '<option value="">-- โหลดไม่สำเร็จ --</option>';
+    setStatus('โหลดข้อมูลไม่สำเร็จ: '+err.message,'err');
+  }
+}
+
+// ===== LOAD TEMPLATE =====
+function loadTemplate(){
+  const tid = $('templateSelect').value;
+  if(!tid){ alert('กรุณาเลือกงานก่อน'); return; }
+  const tpl = templates.find(t=>t.id===tid);
+
+  // -- ของไหว้ --
+  const wRows = worshipItems.filter(x=>x.tid===tid);
+  curWorship = wRows.map((r,i)=>({
+    rowId: 'w'+i+'_'+Date.now(),
+    ...r,
+    qty: (r.defQty && r.defQty!=='-') ? (Number(r.defQty)||1) : 1,
+  }));
+
+  // -- วัสดุอุปกรณ์: ฐานกลาง + เฉพาะงาน --
+  // ฐานกลาง: ใช้คอลัมน์ "งานเล็ก" เป็น default (ปรับได้)
+  const baseRows = eqBaseItems.map((r,i)=>({
+    rowId: 'b'+i+'_'+Date.now(),
+    isBase: true,
+    cat: r.cat,
+    item: r.item,
+    unit: r.unit,
+    note: `งานเล็ก:${r.small} / กลาง:${r.medium} / ใหญ่:${r.large}`,
+    qty: Number(r.small)||0,
+    defQty: r.small,
+  }));
+
+  // เพิ่มเติมเฉพาะงาน
+  const extraRows = eqExtraItems.filter(x=>x.tid===tid).map((r,i)=>({
+    rowId: 'e'+i+'_'+Date.now(),
+    isBase: false,
+    cat: r.cat,
+    item: r.item,
+    unit: '',
+    note: r.note,
+    qty: Number(r.defQty)||1,
+    defQty: r.defQty,
+  }));
+
+  curEquip = [...baseRows, ...extraRows];
+
+  const isVeg = curWorship.some(r=>r.cat==='อาหารเจ');
+  renderWorship(isVeg);
+  renderEquipment(extraRows.length);
+
+  showCustomSections();
+  setStatus(
+    `โหลดรายการ "${tpl?.name||'-'}" — ของไหว้ ${curWorship.length} รายการ | วัสดุอุปกรณ์ ${curEquip.length} รายการ`,
+    'ok'
+  );
+}
+
+// ===== RENDER ของไหว้ =====
+function renderWorship(isVeg){
+  const box = $('items-worship');
+  if(!curWorship.length){
+    box.innerHTML = '<div class="empty">ไม่มีรายการของไหว้สำหรับงานนี้</div>';
+    return;
+  }
+  let html = '';
+  if(isVeg) html += '<div class="note-veg">🌿 งานนี้กำหนดให้ใช้ <strong>อาหารเจเท่านั้น</strong></div>';
+  html += curWorship.map((item,idx)=>`
+    <div class="item">
+      <div class="item-top">
+        <div>
+          <div class="iname">${idx+1}. ${esc(item.item)}</div>
+          <div class="imeta">
+            ${wBadge(item.cat)}
+            ${item.unit ? '| '+esc(item.unit) : ''}
+            ${item.note ? '<br>📌 '+esc(item.note) : ''}
+          </div>
+        </div>
+        <div class="qty-box">
+          <div class="qlabel">จำนวน</div>
+          <input type="number" min="0" value="${item.qty}"
+            onchange="updateQty(curWorship,'${item.rowId}',this.value)">
+        </div>
+      </div>
+    </div>`).join('');
+  box.innerHTML = html;
+}
+
+// ===== RENDER วัสดุอุปกรณ์ =====
+function renderEquipment(extraCount){
+  const box = $('items-equipment');
+  if(!curEquip.length){
+    box.innerHTML = '<div class="empty">ไม่มีข้อมูลวัสดุอุปกรณ์</div>';
+    return;
+  }
+  const baseList = curEquip.filter(x=>x.isBase);
+  const extraList = curEquip.filter(x=>!x.isBase);
+
+  let html = '<div class="note-base">📦 ตัวเลขในช่อง "จำนวน" มาจากระดับ <strong>งานเล็ก</strong> — ปรับตามขนาดงานจริงได้เลย</div>';
+
+  if(baseList.length){
+    html += '<div class="section-title">🔧 วัสดุฐานกลาง (ใช้ทุกงาน)</div>';
+    html += baseList.map((item,idx)=>`
+      <div class="item">
+        <div class="item-top">
+          <div>
+            <div class="iname">${idx+1}. ${esc(item.item)}</div>
+            <div class="imeta">
+              ${eBadge(item.cat, true)}
+              <br><span style="color:#888;font-size:11px">${esc(item.note)}</span>
+            </div>
+          </div>
+          <div class="qty-box">
+            <div class="qlabel">จำนวน</div>
+            <input type="number" min="0" value="${item.qty}"
+              onchange="updateQty(curEquip,'${item.rowId}',this.value)">
+          </div>
+        </div>
+      </div>`).join('');
+  }
+
+  if(extraList.length){
+    html += '<div class="section-title" style="margin-top:14px">⭐ วัสดุเพิ่มเติมเฉพาะงานนี้</div>';
+    html += extraList.map((item,idx)=>`
+      <div class="item" style="background:#FFFBF0">
+        <div class="item-top">
+          <div>
+            <div class="iname">${idx+1}. ${esc(item.item)}</div>
+            <div class="imeta">
+              ${eBadge(item.cat, false)}
+              ${item.note ? '<br>📌 '+esc(item.note) : ''}
+            </div>
+          </div>
+          <div class="qty-box">
+            <div class="qlabel">จำนวน</div>
+            <input type="number" min="0" value="${item.qty}"
+              onchange="updateQty(curEquip,'${item.rowId}',this.value)">
+          </div>
+        </div>
+      </div>`).join('');
+  }
+
+  box.innerHTML = html;
+}
+
+function updateQty(list, rowId, val){
+  const r = list.find(x=>x.rowId===rowId);
+  if(r) r.qty = val==='' ? 0 : Math.max(0, Number(val)||0);
+}
+
+// ===== TAB =====
+function switchTab(tab){
+  activeTab = tab;
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>{
+    b.classList.toggle('active', (i===0 && tab==='worship') || (i===1 && tab==='equipment'));
+  });
+  $('panel-worship').classList.toggle('active', tab==='worship');
+  $('panel-equipment').classList.toggle('active', tab==='equipment');
+}
+
+// ===== CLEAR =====
+function clearAll(){
+  customWorship=[]; customEquip=[]; customIdCounter=0;
+  renderCustomRows('worship'); renderCustomRows('equip');
+  $('custom-worship-section').style.display='none';
+  $('custom-equip-section').style.display='none';
+  curWorship = []; curEquip = [];
+  $('items-worship').innerHTML = '<div class="empty">กรุณาเลือกงานแล้วกด "โหลดรายการ"</div>';
+  $('items-equipment').innerHTML = '<div class="empty">กรุณาเลือกงานแล้วกด "โหลดรายการ"</div>';
+  $('summaryBox').value = '';
+  setStatus('ล้างรายการแล้ว','warn');
+}
+
+// ===== SUMMARY =====
+function buildSummary(){
+  const tid = $('templateSelect').value;
+  const tpl = templates.find(t=>t.id===tid);
+  const now = new Date().toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'});
+
+  const lines = [
+    '===== ใบเตรียมเบิกงานพัสดุ =====',
+    `งาน: ${tpl?.name||'-'}`,
+    `วันที่พิธี: ${tpl?.date||'-'}`,
+    `วันที่พิมพ์: ${now}`,
+    'สมาคมปึงเถ่ากงม่าขอนแก่น',
+    '--------------------------------',
+    '🙏 ของไหว้',
+    '--------------------------------',
+  ];
+
+  const wActive = curWorship.filter(x=>x.qty>0);
+  if(wActive.length){
+    wActive.forEach((item,i)=>{
+      lines.push(`${i+1}. ${item.item}`);
+      lines.push(`   หมวด: ${item.cat} | จำนวน: ${item.qty} ${item.unit||''}`);
+      if(item.note) lines.push(`   หมายเหตุ: ${item.note}`);
+    });
+  } else {
+    lines.push('(ไม่มีรายการ)');
+  }
+
+  lines.push('--------------------------------');
+  lines.push('🪑 วัสดุอุปกรณ์');
+  lines.push('-- ฐานกลาง --');
+
+  const eBase = curEquip.filter(x=>x.isBase && x.qty>0);
+  eBase.forEach((item,i)=>{
+    lines.push(`${i+1}. ${item.item} — จำนวน: ${item.qty}`);
+  });
+
+  const eExtra = curEquip.filter(x=>!x.isBase && x.qty>0);
+  if(eExtra.length){
+    lines.push('-- เพิ่มเติมเฉพาะงาน --');
+    eExtra.forEach((item,i)=>{
+      lines.push(`${i+1}. ${item.item} — จำนวน: ${item.qty}`);
+      if(item.note) lines.push(`   หมายเหตุ: ${item.note}`);
+    });
+  }
+
+  lines.push('--------------------------------');
+  // custom worship
+const cwActive = customWorship.filter(x=>x.name.trim() && x.qty>0);
+if(cwActive.length){
+  lines.push('(รายการเพิ่มเติมของไหว้)');
+  cwActive.forEach((r,i)=>lines.push(`  - ${r.name} จำนวน: ${r.qty}`));
+}
+// custom equip
+const ceActive = customEquip.filter(x=>x.name.trim() && x.qty>0);
+if(ceActive.length){
+  lines.push('(รายการเพิ่มเติมวัสดุอุปกรณ์)');
+  ceActive.forEach((r,i)=>lines.push(`  - ${r.name} จำนวน: ${r.qty}`));
+}
+lines.push('--------------------------------');
+lines.push('⚠️ ยังไม่ใช่การเบิกจริง เป็นเพียงใบเตรียมเบิก');
+  $('summaryBox').value = lines.join('\n');
+}
+
+function printPage(){
+  // อัปเดต print header
+  const tid = $('templateSelect').value;
+  const tpl = templates.find(t=>t.id===tid);
+  const now = new Date().toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'});
+  if(tpl){
+    $('printTitle').textContent = 'ใบเตรียมเบิก — ' + tpl.name;
+    $('printSubtitle').textContent = 'วันที่พิธี: ' + (tpl.date||'-') + '   |   วันที่พิมพ์: ' + now + '   |   สมาคมปึงเถ่ากงม่าขอนแก่น';
+  }
+
+  // ใส่ data-qty ให้ qty-box ทุกอัน เพื่อแสดงใน CSS print
+  document.querySelectorAll('.qty-box').forEach(box => {
+    const inp = box.querySelector('input');
+    if(inp) box.setAttribute('data-qty', inp.value);
+  });
+
+  window.print();
+}
+
+function sendLine(){
+  buildSummary();
+  const txt = $('summaryBox').value.trim();
+  if(!txt){ alert('ยังไม่มีข้อมูล'); return; }
+  window.open('https://line.me/R/msg/text/?'+encodeURIComponent(txt),'_blank');
+}
+
+function sendEmail(){
+  buildSummary();
+  const txt = $('summaryBox').value.trim();
+  const tid = $('templateSelect').value;
+  const tpl = templates.find(t=>t.id===tid);
+  window.location.href = 'mailto:?subject='+encodeURIComponent('ใบเตรียมเบิก — '+(tpl?.name||''))+'&body='+encodeURIComponent(txt);
+}
+
+init();
+
+// ========== Custom rows ==========
+let customWorship = [];
+let customEquip = [];
+let customIdCounter = 0;
+
+function addCustomRow(type) {
+  const id = 'custom_' + (++customIdCounter);
+  const list = type === 'worship' ? customWorship : customEquip;
+  list.push({ id, name: '', qty: 1 });
+  renderCustomRows(type);
+}
+
+function delCustomRow(type, id) {
+  if (type === 'worship') customWorship = customWorship.filter(x => x.id !== id);
+  else customEquip = customEquip.filter(x => x.id !== id);
+  renderCustomRows(type);
+}
+
+function renderCustomRows(type) {
+  const list = type === 'worship' ? customWorship : customEquip;
+  const container = $('custom-' + type + '-rows');
+  container.innerHTML = list.map(row => `
+    <div class="custom-row">
+      <input type="text" placeholder="ชื่อรายการ..." value="${row.name}"
+        oninput="updateCustom('${type}','${row.id}','name',this.value)">
+      <input type="number" min="0" value="${row.qty}"
+        oninput="updateCustom('${type}','${row.id}','qty',this.value)">
+      <button class="btn-del" onclick="delCustomRow('${type}','${row.id}')">×</button>
+    </div>`).join('');
+}
+
+function updateCustom(type, id, field, val) {
+  const list = type === 'worship' ? customWorship : customEquip;
+  const row = list.find(x => x.id === id);
+  if (row) row[field] = field === 'qty' ? (Number(val) || 0) : val;
+}
+
+function showCustomSections() {
+  $('custom-worship-section').style.display = '';
+  $('custom-equip-section').style.display = '';
+}
+
+</script>
+</body>
+</html>
